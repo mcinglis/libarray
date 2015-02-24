@@ -1,0 +1,485 @@
+
+// This file is the result of running:
+//     {{' '.join(argv)}}
+
+
+// Copyright 2015  Malcolm Inglis <http://minglis.id.au>
+//
+// This file is part of Libarray.
+//
+// Libarray is free software: you can redistribute it and/or modify it under
+// the terms of the GNU Affero General Public License as published by the
+// Free Software Foundation, either version 3 of the License, or (at your
+// option) any later version.
+//
+// Libarray is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+// more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Libarray. If not, see <https://gnu.org/licenses/>.
+
+
+{% set sys_headers = sys_headers.split() %}
+{% set rel_headers = rel_headers.split() %}
+{% set typeclasses = typeclasses.split() %}
+
+#include "{{header}}"
+
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <libtypes/types.h>
+#include <libmacro/assert.h>    // ASSERT
+#include <libmacro/logic.h>     // IMPLIES
+
+{% for path in sys_headers %}
+#include <{{path}}>
+{% endfor %}
+
+{% for path in rel_headers %}
+#include "{{path}}"
+{% endfor %}
+
+
+bool
+arrayc_{{funcname}}__is_valid(
+        ArrayC_{{typename}} const xs )
+{
+    return IMPLIES( xs.e == NULL, xs.length == 0 );
+}
+
+
+bool
+arraym_{{funcname}}__is_valid(
+        ArrayM_{{typename}} const xs )
+{
+    return IMPLIES( xs.e == NULL, xs.length == 0 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__new(
+        {{type}} const * const elements,
+        size_t const length )
+{
+    if ( elements == NULL ) {
+        return ( ArrayC_{{typename}} ){ 0 };
+    } else {
+        return ( ArrayC_{{typename}} ){
+            .e = elements,
+            .length = length
+        };
+    }
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__from_arraym(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return ( ArrayC_{{typename}} ){
+        .e = xs.e,
+        .length = xs.length
+    };
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new(
+        {{type}} const * const elements,
+        size_t const length )
+{
+    ArrayM_{{typename}} const xs =
+            arraym_{{funcname}}__new_empty( length );
+    if ( errno ) { return xs; }
+    memcpy( xs.e, elements, length );
+    return xs;
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new_empty(
+        size_t const length )
+{
+    errno = 0;
+    ArrayM_{{typename}} const xs = {
+        .length = length,
+        .e      = ( length == 0 ) ? NULL : malloc( length )
+    };
+    if ( errno ) {
+        return ( ArrayM_{{typename}} ){ 0 };
+    } else {
+        return xs;
+    }
+}
+
+
+void
+arraym_{{funcname}}__free(
+        ArrayM_{{typename}} * const xs )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    if ( xs->length > 0 ) {
+        free( xs->e );
+        *xs = ( ArrayM_{{typename}} ){ 0 };
+    }
+}
+
+
+bool
+arrayc_{{funcname}}__is_empty(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return xs.length == 0;
+}
+
+
+bool
+arraym_{{funcname}}__is_empty(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return xs.length == 0;
+}
+
+
+bool
+arrayc_{{funcname}}__same(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ) );
+
+    return xs.length == ys.length
+        && xs.e      == ys.e;
+}
+
+
+bool
+arraym_{{funcname}}__same(
+        ArrayM_{{typename}} const xs,
+        ArrayM_{{typename}} const ys )
+{
+    return arrayc_{{funcname}}__same(
+               arrayc_{{funcname}}__from_arraym( xs ),
+               arrayc_{{funcname}}__from_arraym( ys ) );
+}
+
+
+{{type}}
+arrayc_{{funcname}}__get(
+        ArrayC_{{typename}} const xs,
+        size_t const index )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), index < xs.length );
+
+    return xs.e[ index ];
+}
+
+
+{{type}}
+arraym_{{funcname}}__get(
+        ArrayM_{{typename}} const xs,
+        size_t const index )
+{
+    return arrayc_{{funcname}}__get(
+               arrayc_{{funcname}}__from_arraym( xs ), index );
+}
+
+
+{{type}}
+arraym_{{funcname}}__set(
+        ArrayM_{{typename}} const xs,
+        size_t const index,
+        {{type}} const value )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), index < xs.length );
+
+    {{type}} const old = xs.e[ index ];
+    xs.e[ index ] = value;
+    return old;
+}
+
+
+void
+arraym_{{funcname}}__set_all(
+        ArrayM_{{typename}} const xs,
+        {{type}} const value )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        xs.e[ i ] = value;
+    }
+}
+
+
+bool
+arrayc_{{funcname}}__any(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        if ( f( xs.e[ i ] ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool
+arraym_{{funcname}}__any(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__any( arrayc_{{funcname}}__from_arraym( xs ), f );
+}
+
+
+bool
+arrayc_{{funcname}}__all(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        if ( !f( xs.e[ i ] ) ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+bool
+arraym_{{funcname}}__all(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__all( arrayc_{{funcname}}__from_arraym( xs ), f );
+}
+
+
+
+void
+arraym_{{funcname}}__each(
+        ArrayM_{{typename}} const xs,
+        void ( * const f )( {{type}} * ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        f( xs.e + i );
+    }
+}
+
+
+void
+arraym_{{funcname}}__each_b(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} * ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        if ( f( xs.e + i ) == false ) {
+            break;
+        }
+    }
+}
+
+
+void
+arraym_{{funcname}}__each_e(
+        ArrayM_{{typename}} const xs,
+        void ( * const f )( {{type}} * ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    errno = 0;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        f( xs.e + i );
+        if ( errno ) { break; }
+    }
+}
+
+
+void
+arraym_{{funcname}}__each_where(
+        ArrayM_{{typename}} const xs,
+        void ( * const f )( {{type}} * ),
+        bool ( * const where )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const el = xs.e + i;
+        if ( where( *el ) ) {
+            f( el );
+        }
+    }
+}
+
+
+void
+arraym_{{funcname}}__each_where_b(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} * ),
+        bool ( * const where )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const el = xs.e + i;
+        if ( where( *el ) ) {
+            if ( f( el ) == false ) {
+                break;
+            }
+        }
+    }
+}
+
+
+void
+arraym_{{funcname}}__each_where_e(
+        ArrayM_{{typename}} const xs,
+        void ( * const f )( {{type}} * ),
+        bool ( * const where )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    errno = 0;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const el = xs.e + i;
+        if ( where( *el ) ) {
+            f( el );
+            if ( errno ) { break; }
+        }
+    }
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__pick(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} const * pick,
+                            {{type}} x ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    {{type}} const * pick = NULL;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} const * const el = xs.e + i;
+        if ( f( pick, *el ) ) {
+            pick = el;
+        }
+    }
+    return pick;
+}
+
+
+{{type}} *
+arraym_{{funcname}}__pick(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} const * pick,
+                            {{type}} x ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    {{type}} * pick = NULL;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const el = xs.e + i;
+        if ( f( pick, *el ) ) {
+            pick = el;
+        }
+    }
+    return pick;
+}
+
+
+
+{% macro typeclass_header(name) -%}
+///////////////////////////////////
+/// TYPECLASS: {{name}}
+///////////////////////////////////
+{%- endmacro %}
+
+{% macro typeclass(name) -%}
+{% if name in typeclasses %}
+{{ typeclass_header(name) }}
+{{ caller() }}
+{% endif %}
+{%- endmacro %}
+
+
+{% call typeclass('EQ') %}
+
+bool
+arrayc_{{funcname}}__equal(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ) );
+
+    if ( xs.length != ys.length ) {
+        return false;
+    } else {
+        for ( size_t i = 0; i < xs.length; i++ ) {
+            if ( !{{funcname}}__equal( xs.e[ i ], ys.e[ i ] ) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+bool
+arrayc_{{funcname}}__not_equal(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    return !arrayc_{{funcname}}__equal( xs, ys );
+}
+
+
+bool
+arraym_{{funcname}}__equal(
+        ArrayM_{{typename}} const xs,
+        ArrayM_{{typename}} const ys )
+{
+    return arrayc_{{funcname}}__equal(
+               arrayc_{{funcname}}__from_arraym( xs ),
+               arrayc_{{funcname}}__from_arraym( ys ) );
+}
+
+
+bool
+arraym_{{funcname}}__not_equal(
+        ArrayM_{{typename}} const xs,
+        ArrayM_{{typename}} const ys )
+{
+    return !arraym_{{funcname}}__equal( xs, ys );
+}
+
+{% endcall %}
+

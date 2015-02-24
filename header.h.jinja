@@ -1,0 +1,270 @@
+
+// This file is the result of running:
+//     {{' '.join(argv)}}
+
+
+// Copyright 2015  Malcolm Inglis <http://minglis.id.au>
+//
+// This file is part of Libarray.
+//
+// Libarray is free software: you can redistribute it and/or modify it under
+// the terms of the GNU Affero General Public License as published by the
+// Free Software Foundation, either version 3 of the License, or (at your
+// option) any later version.
+//
+// Libarray is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+// more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Libarray. If not, see <https://gnu.org/licenses/>.
+
+
+{% set sys_headers = sys_headers.split() %}
+{% set rel_headers = rel_headers.split() %}
+{% set typeclasses = typeclasses.split() %}
+
+
+#ifndef {{include_guard}}
+#define {{include_guard}}
+
+
+#include <libtypes/types.h>
+#include <libmacro/nelem.h>
+
+{% for path in sys_headers %}
+#include <{{path}}>
+{% endfor %}
+
+{% for path in rel_headers %}
+#include "{{path}}"
+{% endfor %}
+
+
+#define ARRAY_{{macroname}}( ... ) \
+    { .e      = ( {{type}}[] ){ __VA_ARGS__ }, \
+      .length = NELEM( ( {{type}}[] ){ __VA_ARGS__ } ) }
+
+
+bool
+arrayc_{{funcname}}__is_valid(
+        ArrayC_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_valid(
+        ArrayM_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__new(
+        {{type}} const * elements,
+        size_t length );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__from_arraym(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new(
+        {{type}} const * elements,
+        size_t length );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new_empty(
+        size_t length );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arrayc(
+        ArrayC_{{typename}} );
+
+
+void
+arraym_{{typename}}__free(
+        ArrayM_{{typename}} * xs );
+
+
+bool
+arrayc_{{funcname}}__is_empty(
+        ArrayC_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_empty(
+        ArrayM_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__same(
+        ArrayC_{{typename}},
+        ArrayC_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__same(
+        ArrayM_{{typename}},
+        ArrayM_{{typename}} );
+
+
+{{type}}
+arrayc_{{funcname}}__get(
+        ArrayC_{{typename}},
+        size_t index );
+
+
+{{type}}
+arraym_{{funcname}}__get(
+        ArrayM_{{typename}},
+        size_t index );
+
+
+{{type}}
+arraym_{{funcname}}__set(
+        ArrayM_{{typename}},
+        size_t index,
+        {{type}} value );
+
+
+void
+arraym_{{funcname}}__set_all(
+        ArrayM_{{typename}},
+        {{type}} value );
+
+
+bool
+arrayc_{{funcname}}__any(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__any(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+bool
+arrayc_{{funcname}}__all(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__all(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+// `arrayc_*_each*()` functions aren't provided, because the passed function
+// pointers would receive a value (no point sending a constant pointer), and
+// `void ( * f )( type )` can only have the effect of mutating global (or
+// static) memory -- we don't want to encourage that.
+
+
+void
+arraym_{{funcname}}__each(
+        ArrayM_{{typename}} xs,
+        void ( * f )( {{type}} * x ) );
+
+
+void
+arraym_{{funcname}}__each_b(
+        ArrayM_{{typename}} xs,
+        bool ( * f )( {{type}} * x ) );
+
+
+void
+arraym_{{funcname}}__each_e(
+        ArrayM_{{typename}} xs,
+        void ( * f )( {{type}} * x ) );
+
+
+void
+arraym_{{funcname}}__each_where(
+        ArrayM_{{typename}} xs,
+        void ( * f )( {{type}} * x ),
+        bool ( * where )( {{type}} x ) );
+
+
+void
+arraym_{{funcname}}__each_where_b(
+        ArrayM_{{typename}} xs,
+        bool ( * f )( {{type}} * x ),
+        bool ( * where )( {{type}} x ) );
+
+
+void
+arraym_{{funcname}}__each_where_e(
+        ArrayM_{{typename}} xs,
+        void ( * f )( {{type}} * x ),
+        bool ( * where )( {{type}} x ) );
+
+
+{{type}} const *
+arrayc_{{funcname}}__pick(
+        ArrayC_{{typename}} const xs,
+        bool ( * f )( {{type}} const * pick,
+                      {{type}} x ) );
+
+
+{{type}} *
+arraym_{{funcname}}__pick(
+        ArrayM_{{typename}} const xs,
+        bool ( * f )( {{type}} const * pick,
+                      {{type}} x ) );
+
+
+{% macro typeclass_header(name) -%}
+///////////////////////////////////
+/// TYPECLASS: {{name}}
+///////////////////////////////////
+{%- endmacro %}
+
+{% macro typeclass(name) -%}
+{% if name in typeclasses %}
+{{ typeclass_header(name) }}
+{{ caller() }}
+{% endif %}
+{%- endmacro %}
+
+
+{% call typeclass('EQ') %}
+
+bool
+arrayc_{{funcname}}__equal(
+        ArrayC_{{typename}},
+        ArrayC_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__not_equal(
+        ArrayC_{{typename}},
+        ArrayC_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__equal(
+        ArrayM_{{typename}},
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__not_equal(
+        ArrayM_{{typename}},
+        ArrayM_{{typename}} );
+
+{% endcall %}
+
+
+#endif // ifndef {{ include_guard }}
+
