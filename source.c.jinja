@@ -310,7 +310,8 @@ arraym_{{funcname}}__each_(
 {
     return arrayc_{{funcname}}__each(
                    arrayc_{{funcname}}__from_arraym( o.xs ),
-                   .f = o.f, .b = o.b, .e = o.e );
+                   .f = o.f, .b = o.b, .e = o.e,
+                   .where = o.where, .where_not = o.where_not );
 }
 
 
