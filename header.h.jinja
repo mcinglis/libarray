@@ -165,49 +165,59 @@ arraym_{{funcname}}__all(
         bool ( * f )( {{type}} ) );
 
 
-// `arrayc_*_each*()` functions aren't provided, because the passed function
-// pointers would receive a value (no point sending a constant pointer), and
-// `void ( * f )( type )` can only have the effect of mutating global (or
-// static) memory -- we don't want to encourage that.
+
+struct arrayc_{{funcname}}__each__options {
+    ArrayC_{{typename}} xs;
+    void ( * f )( {{type}} );
+    bool ( * b )( {{type}} );
+    void ( * e )( {{type}} );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+};
+
+bool
+arrayc_{{funcname}}__each_(
+        struct arrayc_{{funcname}}__each__options );
+
+#define arrayc_{{funcname}}__each( ... ) \
+    arrayc_{{funcname}}__each_( \
+        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
 
 
-void
-arraym_{{funcname}}__each(
-        ArrayM_{{typename}} xs,
-        void ( * f )( {{type}} * x ) );
+struct arraym_{{funcname}}__each__options {
+    ArrayM_{{typename}} xs;
+    void ( * f )( {{type}} );
+    bool ( * b )( {{type}} );
+    void ( * e )( {{type}} );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+};
+
+bool
+arraym_{{funcname}}__each_(
+        struct arraym_{{funcname}}__each__options );
+
+#define arraym_{{funcname}}__each( ... ) \
+    arraym_{{funcname}}__each_( \
+        ( struct arraym_{{funcname}}__each__options ){ __VA_ARGS__ } )
 
 
-void
-arraym_{{funcname}}__each_b(
-        ArrayM_{{typename}} xs,
-        bool ( * f )( {{type}} * x ) );
+struct arraym_{{funcname}}__eachp__options {
+    ArrayM_{{typename}} xs;
+    void ( * f )( {{type}} * );
+    bool ( * b )( {{type}} * );
+    void ( * e )( {{type}} * );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+};
 
+bool
+arraym_{{funcname}}__eachp_(
+        struct arraym_{{funcname}}__eachp__options );
 
-void
-arraym_{{funcname}}__each_e(
-        ArrayM_{{typename}} xs,
-        void ( * f )( {{type}} * x ) );
-
-
-void
-arraym_{{funcname}}__each_where(
-        ArrayM_{{typename}} xs,
-        void ( * f )( {{type}} * x ),
-        bool ( * where )( {{type}} x ) );
-
-
-void
-arraym_{{funcname}}__each_where_b(
-        ArrayM_{{typename}} xs,
-        bool ( * f )( {{type}} * x ),
-        bool ( * where )( {{type}} x ) );
-
-
-void
-arraym_{{funcname}}__each_where_e(
-        ArrayM_{{typename}} xs,
-        void ( * f )( {{type}} * x ),
-        bool ( * where )( {{type}} x ) );
+#define arraym_{{funcname}}__eachp( ... ) \
+    arraym_{{funcname}}__eachp_( \
+        ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
 
 
 {{type}} const *

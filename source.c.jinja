@@ -274,106 +274,68 @@ arraym_{{funcname}}__all(
 {
     ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
 
-    return arrayc_{{funcname}}__all( arrayc_{{funcname}}__from_arraym( xs ), f );
+    return arrayc_{{funcname}}__all(
+                   arrayc_{{funcname}}__from_arraym( xs ), f );
 }
 
 
-
-void
-arraym_{{funcname}}__each(
-        ArrayM_{{typename}} const xs,
-        void ( * const f )( {{type}} * ) )
+bool
+arrayc_{{funcname}}__each_(
+        struct arrayc_{{funcname}}__each__options const o )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arrayc_{{funcname}}__is_valid( o.xs ) );
 
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        f( xs.e + i );
-    }
-}
-
-
-void
-arraym_{{funcname}}__each_b(
-        ArrayM_{{typename}} const xs,
-        bool ( * const f )( {{type}} * ) )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
-
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        if ( f( xs.e + i ) == false ) {
-            break;
+    for ( size_t i = 0; i < o.xs.length; i++ ) {
+        {{type}} const el = o.xs.e[ i ];
+        if ( ( o.where != NULL && !o.where( el ) )
+          || ( o.where_not != NULL && o.where_not( el ) ) ) {
+            continue;
+        }
+        if ( o.e != NULL ) {
+            o.e( el );
+            if ( errno ) { return false; }
+        } else if ( o.b != NULL ) {
+            if ( o.b( el ) == false ) { return false; }
+        } else if ( o.f != NULL ) {
+            o.f( el );
         }
     }
+    return true;
 }
 
 
-void
-arraym_{{funcname}}__each_e(
-        ArrayM_{{typename}} const xs,
-        void ( * const f )( {{type}} * ) )
+bool
+arraym_{{funcname}}__each_(
+        struct arraym_{{funcname}}__each__options const o )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
-
-    errno = 0;
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        f( xs.e + i );
-        if ( errno ) { break; }
-    }
+    return arrayc_{{funcname}}__each(
+                   arrayc_{{funcname}}__from_arraym( o.xs ),
+                   .f = o.f, .b = o.b, .e = o.e );
 }
 
 
-void
-arraym_{{funcname}}__each_where(
-        ArrayM_{{typename}} const xs,
-        void ( * const f )( {{type}} * ),
-        bool ( * const where )( {{type}} ) )
+bool
+arraym_{{funcname}}__eachp_(
+        struct arraym_{{funcname}}__eachp__options const o )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( o.xs ) );
 
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        {{type}} * const el = xs.e + i;
-        if ( where( *el ) ) {
-            f( el );
+    for ( size_t i = 0; i < o.xs.length; i++ ) {
+        {{type}} * const el = o.xs.e + i;
+        if ( ( o.where != NULL && !o.where( *el ) )
+          || ( o.where_not != NULL && o.where_not( *el ) ) ) {
+            continue;
+        }
+        if ( o.e != NULL ) {
+            o.e( el );
+            if ( errno ) { return false; }
+        } else if ( o.b != NULL ) {
+            if ( o.b( el ) == false ) { return false; }
+        } else if ( o.f != NULL ) {
+            o.f( el );
         }
     }
-}
-
-
-void
-arraym_{{funcname}}__each_where_b(
-        ArrayM_{{typename}} const xs,
-        bool ( * const f )( {{type}} * ),
-        bool ( * const where )( {{type}} ) )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
-
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        {{type}} * const el = xs.e + i;
-        if ( where( *el ) ) {
-            if ( f( el ) == false ) {
-                break;
-            }
-        }
-    }
-}
-
-
-void
-arraym_{{funcname}}__each_where_e(
-        ArrayM_{{typename}} const xs,
-        void ( * const f )( {{type}} * ),
-        bool ( * const where )( {{type}} ) )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
-
-    errno = 0;
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        {{type}} * const el = xs.e + i;
-        if ( where( *el ) ) {
-            f( el );
-            if ( errno ) { break; }
-        }
-    }
+    return true;
 }
 
 
