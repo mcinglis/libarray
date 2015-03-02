@@ -27,36 +27,37 @@ uc = $(shell echo $1 | tr [:lower:] [:upper:])
 
 types := bool ord char schar uchar short ushort int uint long ulong \
          llong ullong int8 uint8 int16 uint16 int32 uint32 \
-         intmax uintmax ptrdiff wchar size ptr constptr str mutstr
+         intmax uintmax ptrdiff wchar size ptr ptrm
 
-int8_type     := int8_t
-uint8_type    := uint8_t
-int16_type    := int16_t
-uint16_type   := uint16_t
-int32_type    := int32_t
-uint32_type   := uint32_t
-intmax_type   := intmax_t
-uintmax_type  := uintmax_t
-ptrdiff_type  := ptrdiff_t
-wchar_type    := wchar_t
-size_type     := size_t
-ptr_type      := void *
-constptr_type := void const *
-str_type      := char const *
-mutstr_type   := char *
+int8_type    := int8_t
+uint8_type   := uint8_t
+int16_type   := int16_t
+uint16_type  := uint16_t
+int32_type   := int32_t
+uint32_type  := uint32_t
+intmax_type  := intmax_t
+uintmax_type := uintmax_t
+ptrdiff_type := ptrdiff_t
+wchar_type   := wchar_t
+size_type    := size_t
+ptr_type     := void const *
+ptrm_type    := void *
 
 common_typeclasses := EQ
 
 prefix := array-
+def_dir := def
 
 path_to_name        = $(subst $(prefix),,$(notdir $(basename $1)))
+name_to_def_path    = $(def_dir)/$(prefix)$1.h
 name_to_header_path = $(prefix)$1.h
 name_to_source_path = $(prefix)$1.c
 
+gen_defs    := $(call map,name_to_def_path,$(types))
 gen_headers := $(call map,name_to_header_path,$(types))
 gen_sources := $(call map,name_to_source_path,$(types))
 
-sources := $(wildcard *.c) $(gen_sources)
+sources := $(gen_sources)
 objects := $(sources:.c=.o)
 mkdeps  := $(sources:.c=.dep.mk)
 
@@ -78,22 +79,33 @@ fast: all
 
 
 $(gen_sources): %.c: %.h
-$(gen_headers) $(gen_sources): $(RENDER_JINJA_SCRIPT)
+$(gen_defs) $(gen_headers) $(gen_sources): $(RENDER_JINJA_SCRIPT)
+
+$(def_dir):
+	mkdir -p $@
+
+$(gen_defs): def.h.jinja | $(def_dir)
+	$(eval n := $(call path_to_name,$@))
+	$(eval N := $(call uc,$n))
+	$(RENDER_JINJA) $< "include_guard=LIBARRAY_DEF_ARRAY_$N_H" "sys_headers=" "rel_headers=" "typename=$n" "funcname=$n" "type=$(or $($(n)_type),$n)" -o $@
 
 $(gen_headers): header.h.jinja
 	$(eval n := $(call path_to_name,$@))
-	$(eval u := $(call uc,$n))
-	$(RENDER_JINJA) $< "include_guard=LIBARRAY_ARRAY_$u_H" "sys_headers=libbase/$n.h" "rel_headers=" "type=$(or $($(n)_type),$n)" "macroname=$u" "typename=$n" "funcname=$n" "typeclasses=$(common_typeclasses) $($(n)_typeclasses)" -o $@
+	$(eval N := $(call uc,$n))
+	$(RENDER_JINJA) $< "include_guard=LIBARRAY_ARRAY_$N_H" "sys_headers=" "rel_headers=$(call name_to_def_path,$n)" "type=$(or $($(n)_type),$n)" "macroname=$N" "typename=$n" "funcname=$n" "typeclasses=$(common_typeclasses) $($(n)_typeclasses)" -o $@
 
 $(gen_sources): source.c.jinja
 	$(eval n := $(call path_to_name,$@))
-	$(eval u := $(call uc,$*))
-	$(RENDER_JINJA) $< "header=$(call name_to_header_path,$n)" "sys_headers=libbase/$n.h" "rel_headers=" "type=$(or $($(n)_type),$n)" "macroname=$u" "typename=$n" "funcname=$n" "typeclasses=$(common_typeclasses) $($(n)_typeclasses)" -o $@
+	$(eval N := $(call uc,$n))
+	$(RENDER_JINJA) $< "header=$(call name_to_header_path,$n)" "sys_headers=libbase/$n.h" "rel_headers=" "type=$(or $($(n)_type),$n)" "macroname=$N" "typename=$n" "funcname=$n" "typeclasses=$(common_typeclasses) $($(n)_typeclasses)" -o $@
+
+
+$(objects): %.o: def/%.h
 
 
 .PHONY: clean
 clean:
-	rm -rf $(gen_sources) $(gen_headers) $(objects) $(mkdeps)
+	rm -rf $(def_dir) $(gen_sources) $(gen_headers) $(objects) $(mkdeps)
 
 
 %.o: %.c
