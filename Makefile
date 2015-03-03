@@ -27,7 +27,7 @@ uc = $(shell echo $1 | tr [:lower:] [:upper:])
 
 types := bool ord char schar uchar short ushort int uint long ulong \
          llong ullong int8 uint8 int16 uint16 int32 uint32 \
-         intmax uintmax ptrdiff wchar size ptr ptrm
+         intmax uintmax ptrdiff wchar size ptr ptrm str strm
 
 int8_type    := int8_t
 uint8_type   := uint8_t
@@ -42,6 +42,11 @@ wchar_type   := wchar_t
 size_type    := size_t
 ptr_type     := void const *
 ptrm_type    := void *
+str_type     := char const *
+strm_type    := char *
+
+str_header  := libstr/str.h
+strm_header := libstr/strm.h
 
 common_typeclasses := EQ
 
@@ -73,7 +78,7 @@ all: $(objects)
 
 
 .PHONY: fast
-fast: CPPFLAGS += -DNDEBUG -DNO_ASSERT -DNO_REQUIRE -DNO_DEBUG
+fast: CPPFLAGS += -DNDEBUG
 fast: CFLAGS = $(cflags_std) -O3 $(cflags_warnings)
 fast: all
 
@@ -97,7 +102,7 @@ $(gen_headers): header.h.jinja
 $(gen_sources): source.c.jinja
 	$(eval n := $(call path_to_name,$@))
 	$(eval N := $(call uc,$n))
-	$(RENDER_JINJA) $< "header=$(call name_to_header_path,$n)" "sys_headers=libbase/$n.h" "rel_headers=" "type=$(or $($(n)_type),$n)" "macroname=$N" "typename=$n" "funcname=$n" "typeclasses=$(common_typeclasses) $($(n)_typeclasses)" -o $@
+	$(RENDER_JINJA) $< "header=$(call name_to_header_path,$n)" "sys_headers=$(or $($(n)_header),libbase/$n.h)" "rel_headers=" "type=$(or $($(n)_type),$n)" "macroname=$N" "typename=$n" "funcname=$n" "typeclasses=$(common_typeclasses) $($(n)_typeclasses)" -o $@
 
 
 $(objects): %.o: def/%.h
