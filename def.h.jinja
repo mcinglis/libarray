@@ -52,5 +52,10 @@ typedef struct arraym_{{funcname}} {
 } ArrayM_{{typename}};
 
 
+#define ARRAY_{{macroname}}( ... ) \
+    { .e      = ( {{type}}[] ){ __VA_ARGS__ }, \
+      .length = NELEM( ( {{type}}[] ){ __VA_ARGS__ } ) }
+
+
 #endif // ifndef {{ include_guard }}
 

@@ -42,11 +42,6 @@
 {% endfor %}
 
 
-#define ARRAY_{{macroname}}( ... ) \
-    { .e      = ( {{type}}[] ){ __VA_ARGS__ }, \
-      .length = NELEM( ( {{type}}[] ){ __VA_ARGS__ } ) }
-
-
 bool
 arrayc_{{funcname}}__is_valid(
         ArrayC_{{typename}} );

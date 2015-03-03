@@ -92,7 +92,7 @@ $(def_dir):
 $(gen_defs): def.h.jinja | $(def_dir)
 	$(eval n := $(call path_to_name,$@))
 	$(eval N := $(call uc,$n))
-	$(RENDER_JINJA) $< "include_guard=LIBARRAY_DEF_ARRAY_$N_H" "sys_headers=" "rel_headers=" "typename=$n" "funcname=$n" "type=$(or $($(n)_type),$n)" -o $@
+	$(RENDER_JINJA) $< "include_guard=LIBARRAY_DEF_ARRAY_$N_H" "sys_headers=" "rel_headers=" "type=$(or $($(n)_type),$n)" "macroname=$N" "typename=$n" "funcname=$n" -o $@
 
 $(gen_headers): header.h.jinja
 	$(eval n := $(call path_to_name,$@))
