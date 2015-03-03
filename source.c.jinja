@@ -224,6 +224,69 @@ arraym_{{funcname}}__set_all(
 }
 
 
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take(
+        ArrayC_{{typename}} const xs,
+        size_t const n )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    if ( n >= xs.length ) {
+        return xs;
+    } else {
+        return ( ArrayC_{{typename}} ){ .e = xs.e, .length = n };
+    }
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop(
+        ArrayC_{{typename}} const xs,
+        size_t const n )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    if ( n >= xs.length ) {
+        return ( ArrayC_{{typename}} ){ 0 };
+    } else {
+        return ( ArrayC_{{typename}} ){
+            .e      = xs.e + n,
+            .length = xs.length - n
+        };
+    }
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_end(
+        ArrayC_{{typename}} const xs,
+        size_t const n )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    if ( n >= xs.length ) {
+        return xs;
+    } else {
+        return arrayc_{{funcname}}__drop( xs, xs.length - n );
+    }
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_end(
+        ArrayC_{{typename}} const xs,
+        size_t const n )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    if ( n >= xs.length ) {
+        return ( ArrayC_{{typename}} ){ 0 };
+    } else {
+        return arrayc_{{funcname}}__take( xs, xs.length - n );
+    }
+}
+
+
 bool
 arrayc_{{funcname}}__any(
         ArrayC_{{typename}} const xs,

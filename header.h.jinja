@@ -141,6 +141,30 @@ arraym_{{funcname}}__set_all(
         {{type}} value );
 
 
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take(
+        ArrayC_{{typename}},
+        size_t n );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop(
+        ArrayC_{{typename}},
+        size_t n );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_end(
+        ArrayC_{{typename}},
+        size_t n );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_end(
+        ArrayC_{{typename}},
+        size_t n );
+
+
 bool
 arrayc_{{funcname}}__any(
         ArrayC_{{typename}},
