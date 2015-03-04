@@ -109,7 +109,9 @@ arraym_{{funcname}}__new_empty(
     errno = 0;
     ArrayM_{{typename}} const xs = {
         .length = length,
-        .e      = ( length == 0 ) ? NULL : malloc( length )
+        .e      = ( length == 0 )
+                      ? NULL
+                      : malloc( length * sizeof ( {{type}} ) )
     };
     if ( errno ) {
         return ( ArrayM_{{typename}} ){ 0 };
