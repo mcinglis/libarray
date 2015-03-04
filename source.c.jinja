@@ -286,6 +286,32 @@ arraym_{{funcname}}__last(
 }
 
 
+bool
+arrayc_{{funcname}}__elem_by(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x,
+        bool ( * eq )( {{type}}, {{type}} ) )
+{
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        if ( eq( x, xs.e[ i ] ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool
+arraym_{{funcname}}__elem_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const x,
+        bool ( * eq )( {{type}}, {{type}} ) )
+{
+    return arrayc_{{funcname}}__elem_by(
+               arrayc_{{funcname}}__from_arraym( xs ), x, eq );
+}
+
+
 ArrayC_{{typename}}
 arrayc_{{funcname}}__take(
         ArrayC_{{typename}} const xs,
@@ -568,6 +594,43 @@ arraym_{{funcname}}__not_equal(
 {
     return !arraym_{{funcname}}__equal( xs, ys );
 }
+
+
+bool
+arrayc_{{funcname}}__elem(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arrayc_{{funcname}}__elem_by( xs, x, {{funcname}}__equal );
+}
+
+
+bool
+arrayc_{{funcname}}__not_elem(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return !arrayc_{{funcname}}__elem( xs, x );
+}
+
+
+bool
+arraym_{{funcname}}__elem(
+        ArrayM_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arraym_{{funcname}}__elem_by( xs, x, {{funcname}}__equal );
+}
+
+
+bool
+arraym_{{funcname}}__not_elem(
+        ArrayM_{{typename}} const xs,
+        {{type}} const x )
+{
+    return !arraym_{{funcname}}__elem( xs, x );
+}
+
 
 {% endcall %}
 

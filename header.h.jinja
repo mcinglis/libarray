@@ -168,6 +168,20 @@ arraym_{{funcname}}__last(
         ArrayM_{{typename}} );
 
 
+bool
+arrayc_{{funcname}}__elem_by(
+        ArrayC_{{typename}},
+        {{type}},
+        bool ( * eq )( {{type}}, {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__elem_by(
+        ArrayM_{{typename}},
+        {{type}},
+        bool ( * eq )( {{type}}, {{type}} ) );
+
+
 ArrayC_{{typename}}
 arrayc_{{funcname}}__take(
         ArrayC_{{typename}},
@@ -323,6 +337,31 @@ bool
 arraym_{{funcname}}__not_equal(
         ArrayM_{{typename}},
         ArrayM_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__elem(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
+bool
+arrayc_{{funcname}}__not_elem(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
+bool
+arraym_{{funcname}}__elem(
+        ArrayM_{{typename}},
+        {{type}} );
+
+
+bool
+arraym_{{funcname}}__not_elem(
+        ArrayM_{{typename}},
+        {{type}} );
+
 
 {% endcall %}
 
