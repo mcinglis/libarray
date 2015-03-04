@@ -123,6 +123,18 @@ arraym_{{funcname}}__get(
         size_t index );
 
 
+{{type}} const *
+arrayc_{{funcname}}__get_ptr(
+        ArrayC_{{typename}},
+        size_t index );
+
+
+{{type}} *
+arraym_{{funcname}}__get_ptr(
+        ArrayM_{{typename}},
+        size_t index );
+
+
 {{type}}
 arraym_{{funcname}}__set(
         ArrayM_{{typename}},
@@ -134,6 +146,26 @@ void
 arraym_{{funcname}}__set_all(
         ArrayM_{{typename}},
         {{type}} value );
+
+
+{{type}}
+arrayc_{{funcname}}__first(
+        ArrayC_{{typename}} );
+
+
+{{type}}
+arraym_{{funcname}}__first(
+        ArrayM_{{typename}} );
+
+
+{{type}}
+arrayc_{{funcname}}__last(
+        ArrayC_{{typename}} );
+
+
+{{type}}
+arraym_{{funcname}}__last(
+        ArrayM_{{typename}} );
 
 
 ArrayC_{{typename}}

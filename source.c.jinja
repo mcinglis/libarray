@@ -197,6 +197,28 @@ arraym_{{funcname}}__get(
 }
 
 
+{{type}} const *
+arrayc_{{funcname}}__get_ptr(
+        ArrayC_{{typename}} const xs,
+        size_t const index )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), index < xs.length );
+
+    return xs.e + index;
+}
+
+
+{{type}} *
+arraym_{{funcname}}__get_ptr(
+        ArrayM_{{typename}} const xs,
+        size_t index )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), index < xs.length );
+
+    return xs.e + index;
+}
+
+
 {{type}}
 arraym_{{funcname}}__set(
         ArrayM_{{typename}} const xs,
@@ -221,6 +243,44 @@ arraym_{{funcname}}__set_all(
     for ( size_t i = 0; i < xs.length; i++ ) {
         xs.e[ i ] = value;
     }
+}
+
+
+{{type}}
+arrayc_{{funcname}}__first(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length >= 1 );
+
+    return xs.e[ 0 ];
+}
+
+
+{{type}}
+arraym_{{funcname}}__first(
+        ArrayM_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__first(
+               arrayc_{{funcname}}__from_arraym( xs ) );
+}
+
+
+{{type}}
+arrayc_{{funcname}}__last(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length >= 1 );
+
+    return xs.e[ xs.length - 1 ];
+}
+
+
+{{type}}
+arraym_{{funcname}}__last(
+        ArrayM_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__last(
+               arrayc_{{funcname}}__from_arraym( xs ) );
 }
 
 
