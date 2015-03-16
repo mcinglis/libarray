@@ -1724,7 +1724,9 @@ arraym_{{funcname}}__equal_by(
         ArrayM_{{typename}} const ys,
         bool ( * const f )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( xs ),
+            arraym_{{funcname}}__is_valid( ys ),
+            f != NULL );
 
     return arrayc_{{funcname}}__equal_by(
                arrayc_{{funcname}}__view_arraym( xs ),

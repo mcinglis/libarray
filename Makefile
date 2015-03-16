@@ -5,6 +5,9 @@
 
 DEPS_DIR ?= ./deps
 
+LIBBASE  ?= $(DEPS_DIR)/libbase
+LIBMAYBE ?= $(DEPS_DIR)/libmaybe
+
 CPPFLAGS += -I$(DEPS_DIR)
 
 cflags_std := -std=c11
@@ -20,33 +23,30 @@ CFLAGS ?= $(cflags_std) -g $(cflags_warnings)
 TPLRENDER ?= $(DEPS_DIR)/tplrender/tplrender
 
 
-name_from_path = $(subst -,_,$(basename $(notdir $1)))
-
-
 test_libarray_types := short uintmax ptrm-int
-test_libbase_types := $(test_libarray_types) size
-test_libmaybe_type := size
+test_libbase_types  := $(test_libarray_types) size
+test_libmaybe_types := size
 
-short_type      := short
-short_options   := --typeclasses BOUNDED EQ ORD ENUM NUM \
-                   --extra num_type=signed min_bound=SHRT_MIN max_bound=SHRT_MAX
+short_type       := short
+short_options    := --typeclasses BOUNDED EQ ORD ENUM NUM \
+                    --extra num_type=signed min_bound=SHRT_MIN max_bound=SHRT_MAX
 
-uintmax_type    := uintmax_t
-uintmax_options := --typeclasses BOUNDED EQ ORD ENUM NUM \
-                   --extra num_type=unsigned
+uintmax_type     := uintmax_t
+uintmax_options  := --typeclasses BOUNDED EQ ORD ENUM NUM \
+                    --extra num_type=unsigned
 
 ptrm_int_type    := int *
 ptrm_int_options := --typeclasses EQ ORD
 
-size_type    := size_t
-size_options := --typeclasses BOUNDED EQ ORD ENUM NUM \
-                --extra num_type=unsigned
+size_type        := size_t
+size_options     := --typeclasses BOUNDED EQ ORD ENUM NUM \
+                    --extra num_type=unsigned
 
-test_libbase_sources := $(foreach t,$(test_libbase_types),$(DEPS_DIR)/libbase/$t.c)
+test_libbase_sources := $(foreach t,$(test_libbase_types),$(LIBBASE)/$t.c)
 test_libbase_headers := $(test_libbase_sources:.c=.h)
 test_libbase_objects := $(test_libbase_sources:.c=.o)
 
-test_libmaybe_defs := $(foreach t,$(test_libmaybe_defs),$(DEPS_DIR)/libmaybe/def/maybe-size.h)
+test_libmaybe_defs := $(foreach t,$(test_libmaybe_types),$(LIBMAYBE)/def/maybe-$t.h)
 
 test_libarray_sources := $(foreach t,$(test_libarray_types),array-$t.c)
 test_libarray_headers := $(test_libarray_sources:.c=.h)
@@ -65,7 +65,7 @@ test_gen := $(test_libbase_sources) \
             $(test_libarray_objects) \
             $(test_gen_objects)
 
-test_binaries := tests/test
+test_binaries := $(basename $(wildcard tests/*.c))
 
 mkdeps := $(test_gen_objects:.o=.dep.mk)
 
@@ -88,7 +88,7 @@ tests: $(test_binaries)
 
 .PHONY: test
 test: tests
-	@./tests/test
+	./tests/test
 
 .PHONY: clean
 clean:
@@ -101,15 +101,19 @@ clean:
 
 tests/test: $(test_gen_objects)
 
-$(test_libbase_headers): %.h: $(DEPS_DIR)/libbase/header.h.jinja
+name_from_path = $(subst -,_,$1)
+
+$(test_libbase_headers): $(LIBBASE)/%.h: $(LIBBASE)/header.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(test_libbase_sources): %.c: $(DEPS_DIR)/libbase/source.c.jinja %.h
+$(test_libbase_sources): $(LIBBASE)/%.c: $(LIBBASE)/source.c.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(test_libmaybe_defs): $(DEPS_DIR)/libmaybe/def/maybe-%.h: $(DEPS_DIR)/libmaybe/def.h.jinja
+$(test_libbase_objects): $(LIBBASE)/%.o: $(LIBBASE)/%.h
+
+$(test_libmaybe_defs): $(LIBMAYBE)/def/maybe-%.h: $(LIBMAYBE)/def.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
@@ -117,13 +121,15 @@ $(test_libarray_defs): def/array-%.h: def.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(test_libarray_headers): array-%.h: header.h.jinja def/array-%.h
+$(test_libarray_headers): array-%.h: header.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(test_libarray_sources): array-%.c: source.c.jinja array-%.h $(DEPS_DIR)/libbase/%.h $(DEPS_DIR)/libmaybe/def/maybe-size.h
+$(test_libarray_sources): array-%.c: source.c.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) --sys-headers "libbase/$*.h" -o $@
+
+$(test_libarray_objects): array-%.o: array-%.h def/array-%.h $(LIBBASE)/%.h $(LIBBASE)/size.h $(LIBMAYBE)/def/maybe-size.h
 
 
 -include $(mkdeps)
