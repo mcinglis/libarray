@@ -1,16 +1,33 @@
 {
     "dependencies": [
-        { "repo": "https://gitorious.org/mcinglis/render-jinja.git" },
-        { "repo": "https://gitorious.org/mcinglis/libtypes.git",
-          "tag":  "v3.*" },
-        { "repo": "https://gitorious.org/mcinglis/libmacro.git",
-          "tag":  "v2.*" },
-        { "repo": "https://gitorious.org/mcinglis/libbase.git" },
-        { "repo": "https://gitorious.org/mcinglis/libstr.git" }
+        { "repo": [ "https://bitbucket.org/mcinglis/libtypes.git",
+                    "https://github.com/mcinglis/libtypes.git",
+                    "https://gitorious.org/mcinglis/libtypes.git" ],
+          "tag":  "v3.*"
+        },
+        { "repo": [ "https://bitbucket.org/mcinglis/libmacro.git",
+                    "https://github.com/mcinglis/libmacro.git",
+                    "https://gitorious.org/mcinglis/libmacro.git" ],
+          "tag":  "v2.*"
+        },
+        { "repo": [ "https://bitbucket.org/mcinglis/libmaybe.git",
+                    "https://github.com/mcinglis/libmaybe.git",
+                    "https://gitorious.org/mcinglis/libmaybe.git" ]
+        },
+        { "dev": true,
+          "repo": [ "https://bitbucket.org/mcinglis/tplrender.git",
+                    "https://github.com/mcinglis/tplrender.git" ]
+        },
+        { "dev": true,
+          "repo": [ "https://bitbucket.org/mcinglis/libbase.git",
+                    "https://github.com/mcinglis/libbase.git",
+                    "https://gitorious.org/mcinglis/libbase.git" ]
+        }
     ],
     "commands": {
         "build": "make",
         "fast":  "make fast",
-        "clean": "make clean"
+        "clean": "make clean",
+        "test":  "make test"
     }
 }

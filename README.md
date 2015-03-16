@@ -1,7 +1,9 @@
 
-**Libarray** defines array types and functions for the standard types. Each header file is generated from [`header.h.jinja`](header.h.jinja), and each source file is generated from [`source.c.jinja`](source.c.jinja) (requiring Python 2). You can easily adapt the build process into your own project to generate arrays of your own types.
+**Libarray** provides Jinja templates that can be rendered to C source files providing array types and many associated functions.
 
-If you would like a typical array library - without type safety, memory locality or immutability - you can use `ArrayM_ptr`.
+You can adapt the template rendering into your project's build process in whichever way you prefer. In my projects, I render the templates for types as I need them, with the typeclasses that I require for each type. See the build process of the tests for Libarray as a basic example of how you could handle the rendering in your own project.
+
+If you would like a typical array library - without type safety, memory locality or immutability - you can render the templates with the `void *` type.
 
 
 ## Releases
@@ -25,7 +27,7 @@ There's nothing magic to what Puck does, so if you would prefer, you can set up 
 
 ## Collaboration
 
-Libarray is available at [Gitorious](https://gitorious.org/mcinglis/libarray), [Bitbucket](https://bitbucket.org/mcinglis/libarray), and [GitHub](https://github.com/mcinglis/libarray).
+Libarray is available at [Bitbucket](https://bitbucket.org/mcinglis/libarray) and [GitHub](https://github.com/mcinglis/libarray).
 
 Questions, discussion, bug reports and feature requests are welcome at [the GitHub issue tracker](https://github.com/mcinglis/libarray/issues), or via [emails](mailto:me@minglis.id.au).
 

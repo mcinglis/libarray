@@ -17,39 +17,40 @@
 // along with Libarray. If not, see <https://gnu.org/licenses/>.
 
 
-// This file is the result of running:
-//     {{' '.join(argv)}}
+// This file is the result of rendering:
+//
+//     {{template_path}}
+//
+// You should make changes to this file by tuning the build process, or (at a
+// stretch) modifying the generation script or template file; not by editing
+// this file as-is.
 
 
-{% set sys_headers = sys_headers.split() %}
-{% set rel_headers = rel_headers.split() %}
-{% set typeclasses = typeclasses.split() %}
-
-
-#ifndef {{include_guard}}
-#define {{include_guard}}
+#ifndef LIBARRAY_ARRAY_{{macroname}}_H
+#define LIBARRAY_ARRAY_{{macroname}}_H
 
 
 #include <libtypes/types.h>
-#include <libmacro/nelem.h>
-
-{% for path in sys_headers %}
-#include <{{path}}>
+#include <libmaybe/def/maybe-size.h>
+{% for p in sys_headers %}
+#include <{{p}}>
 {% endfor %}
 
+#include "def/array-{{filename}}.h"
 {% for path in rel_headers %}
-#include "{{path}}"
+#include "{{p}}"
 {% endfor %}
+
+
+
+///////////////////////////////////
+/// ARRAYC FUNCTIONS
+///////////////////////////////////
 
 
 bool
 arrayc_{{funcname}}__is_valid(
         ArrayC_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__is_valid(
-        ArrayM_{{typename}} );
 
 
 ArrayC_{{typename}}
@@ -59,34 +60,34 @@ arrayc_{{funcname}}__new(
 
 
 ArrayC_{{typename}}
-arrayc_{{funcname}}__from_arraym(
+arrayc_{{funcname}}__view_arraym(
         ArrayM_{{typename}} );
 
 
 ArrayM_{{typename}}
-arraym_{{funcname}}__new(
-        {{type}} const * elements,
-        size_t length );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__new_empty(
-        size_t length );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy(
-        ArrayM_{{typename}} );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_arrayc(
+arrayc_{{funcname}}__to_arraym(
         ArrayC_{{typename}} );
 
 
 void
-arraym_{{typename}}__free(
-        ArrayM_{{typename}} * xs );
+arrayc_{{funcname}}__into_arraym(
+        ArrayC_{{typename}} from,
+        ArrayM_{{typename}} to );
+
+
+{{type}} const *
+arrayc_{{funcname}}__elements(
+        ArrayC_{{typename}} );
+
+
+size_t
+arrayc_{{funcname}}__length(
+        ArrayC_{{typename}} );
+
+
+size_t
+arrayc_{{funcname}}__size(
+        ArrayC_{{typename}} );
 
 
 bool
@@ -95,8 +96,13 @@ arrayc_{{funcname}}__is_empty(
 
 
 bool
-arraym_{{funcname}}__is_empty(
-        ArrayM_{{typename}} );
+arrayc_{{funcname}}__isnt_empty(
+        ArrayC_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__is_length_1(
+        ArrayC_{{typename}} );
 
 
 bool
@@ -105,21 +111,9 @@ arrayc_{{funcname}}__same(
         ArrayC_{{typename}} );
 
 
-bool
-arraym_{{funcname}}__same(
-        ArrayM_{{typename}},
-        ArrayM_{{typename}} );
-
-
 {{type}}
 arrayc_{{funcname}}__get(
         ArrayC_{{typename}},
-        size_t index );
-
-
-{{type}}
-arraym_{{funcname}}__get(
-        ArrayM_{{typename}},
         size_t index );
 
 
@@ -129,33 +123,14 @@ arrayc_{{funcname}}__get_ptr(
         size_t index );
 
 
-{{type}} *
-arraym_{{funcname}}__get_ptr(
-        ArrayM_{{typename}},
-        size_t index );
-
-
-{{type}}
-arraym_{{funcname}}__set(
-        ArrayM_{{typename}},
-        size_t index,
-        {{type}} value );
-
-
-void
-arraym_{{funcname}}__set_all(
-        ArrayM_{{typename}},
-        {{type}} value );
-
-
 {{type}}
 arrayc_{{funcname}}__first(
         ArrayC_{{typename}} );
 
 
-{{type}}
-arraym_{{funcname}}__first(
-        ArrayM_{{typename}} );
+{{type}} const *
+arrayc_{{funcname}}__first_ptr(
+        ArrayC_{{typename}} );
 
 
 {{type}}
@@ -163,23 +138,27 @@ arrayc_{{funcname}}__last(
         ArrayC_{{typename}} );
 
 
-{{type}}
-arraym_{{funcname}}__last(
-        ArrayM_{{typename}} );
+{{type}} const *
+arrayc_{{funcname}}__last_ptr(
+        ArrayC_{{typename}} );
 
 
-bool
-arrayc_{{funcname}}__elem_by(
+size_t
+arrayc_{{funcname}}__count(
         ArrayC_{{typename}},
-        {{type}},
-        bool ( * eq )( {{type}}, {{type}} ) );
+        bool ( * f )( {{type}} ) );
 
 
-bool
-arraym_{{funcname}}__elem_by(
-        ArrayM_{{typename}},
-        {{type}},
-        bool ( * eq )( {{type}}, {{type}} ) );
+size_t
+arrayc_{{funcname}}__count_first(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+size_t
+arrayc_{{funcname}}__count_last(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
 
 
 ArrayC_{{typename}}
@@ -206,15 +185,145 @@ arrayc_{{funcname}}__drop_end(
         size_t n );
 
 
-bool
-arrayc_{{funcname}}__any(
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_while(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_end_while(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_while(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_end_while(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_1(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_2(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_end_1(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_end_2(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_1(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_2(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_end_1(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_end_2(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__section(
+        ArrayC_{{typename}},
+        size_t start,
+        size_t stop );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__section_s(
+        ArrayC_{{typename}},
+        intmax_t start,
+        intmax_t stop );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__left_half(
+        ArrayC_{{typename}} );
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__right_half(
+        ArrayC_{{typename}} );
+
+
+{{type}} const *
+arrayc_{{funcname}}__find(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} const *
+arrayc_{{funcname}}__find_not(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} const *
+arrayc_{{funcname}}__find_last(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} const *
+arrayc_{{funcname}}__find_last_not(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_size
+arrayc_{{funcname}}__find_index(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_size
+arrayc_{{funcname}}__find_index_not(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_size
+arrayc_{{funcname}}__find_last_index(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_size
+arrayc_{{funcname}}__find_last_index_not(
         ArrayC_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 bool
-arraym_{{funcname}}__any(
-        ArrayM_{{typename}},
+arrayc_{{funcname}}__any(
+        ArrayC_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
@@ -225,14 +334,50 @@ arrayc_{{funcname}}__all(
 
 
 bool
-arraym_{{funcname}}__all(
-        ArrayM_{{typename}},
+arrayc_{{funcname}}__only_one(
+        ArrayC_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
+bool
+arrayc_{{funcname}}__only_one_not(
+        ArrayC_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}}
+arrayc_{{funcname}}__foldl(
+        ArrayC_{{typename}} xs,
+        {{type}} init,
+        {{type}} ( * f )( {{type}} acc, {{type}} x ) );
+
+
+{{type}}
+arrayc_{{funcname}}__foldl1(
+        ArrayC_{{typename}} xs,
+        {{type}} ( * f )( {{type}} acc, {{type}} x ) );
+
+
+{{type}}
+arrayc_{{funcname}}__foldr(
+        ArrayC_{{typename}} xs,
+        {{type}} init,
+        {{type}} ( * f )( {{type}} x, {{type}} acc ) );
+
+
+{{type}}
+arrayc_{{funcname}}__foldr1(
+        ArrayC_{{typename}} xs,
+        {{type}} ( * f )( {{type}} x, {{type}} acc ) );
+
+
+{{type}} const *
+arrayc_{{funcname}}__pick(
+        ArrayC_{{typename}} xs,
+        bool ( * f )( {{type}} const * pick, {{type}} x ) );
+
 
 struct arrayc_{{funcname}}__each__options {
-    ArrayC_{{typename}} xs;
     void ( * f )( {{type}} );
     bool ( * b )( {{type}} );
     void ( * e )( {{type}} );
@@ -242,15 +387,415 @@ struct arrayc_{{funcname}}__each__options {
 
 bool
 arrayc_{{funcname}}__each_(
+        ArrayC_{{typename}},
         struct arrayc_{{funcname}}__each__options );
 
-#define arrayc_{{funcname}}__each( ... ) \
-    arrayc_{{funcname}}__each_( \
+#define arrayc_{{funcname}}__each( XS, ... ) \
+    arrayc_{{funcname}}__each_( XS, \
         ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
 
 
+bool
+arrayc_{{funcname}}__equal_by(
+        ArrayC_{{typename}} xs,
+        ArrayC_{{typename}} ys,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
+bool
+arrayc_{{funcname}}__elem_by(
+        ArrayC_{{typename}} xs,
+        {{type}} y,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_ptr_by(
+        ArrayC_{{typename}} xs,
+        {{type}} y,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
+Maybe_size
+arrayc_{{funcname}}__elem_index_by(
+        ArrayC_{{typename}} xs,
+        {{type}} y,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
+size_t
+arrayc_{{funcname}}__elem_count_by(
+        ArrayC_{{typename}} xs,
+        {{type}} y,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
+
+
+///////////////////////////////////
+/// ARRAYM FUNCTIONS
+///////////////////////////////////
+
+
+bool
+arraym_{{funcname}}__is_valid(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new(
+        {{type}} const * elements,
+        size_t length );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new_alloc(
+        size_t length );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy(
+        ArrayM_{{typename}} );
+
+
+void
+arraym_{{funcname}}__into_arraym(
+        ArrayM_{{typename}} from,
+        ArrayM_{{typename}} to );
+
+
+void
+arraym_{{funcname}}__realloc(
+        ArrayM_{{typename}} * xs,
+        size_t new_length );
+
+
+void
+arraym_{{typename}}__free(
+        ArrayM_{{typename}} * xs );
+
+
+void
+arraym_{{typename}}__freev(
+        ArrayM_{{typename}} );
+
+
+{{type}} *
+arraym_{{funcname}}__elements(
+        ArrayM_{{typename}} );
+
+
+size_t
+arraym_{{funcname}}__length(
+        ArrayM_{{typename}} );
+
+
+size_t
+arraym_{{funcname}}__size(
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_empty(
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__isnt_empty(
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_length_1(
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__same(
+        ArrayM_{{typename}},
+        ArrayM_{{typename}} );
+
+
+{{type}}
+arraym_{{funcname}}__get(
+        ArrayM_{{typename}},
+        size_t index );
+
+
+{{type}} *
+arraym_{{funcname}}__get_ptr(
+        ArrayM_{{typename}},
+        size_t index );
+
+
+{{type}}
+arraym_{{funcname}}__set(
+        ArrayM_{{typename}},
+        size_t index,
+        {{type}} value );
+
+
+void
+arraym_{{funcname}}__set_all(
+        ArrayM_{{typename}},
+        {{type}} value );
+
+
+{{type}}
+arraym_{{funcname}}__first(
+        ArrayM_{{typename}} );
+
+
+{{type}} *
+arraym_{{funcname}}__first_ptr(
+        ArrayM_{{typename}} );
+
+
+{{type}}
+arraym_{{funcname}}__last(
+        ArrayM_{{typename}} );
+
+
+{{type}} *
+arraym_{{funcname}}__last_ptr(
+        ArrayM_{{typename}} );
+
+
+size_t
+arraym_{{funcname}}__count(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+size_t
+arraym_{{funcname}}__count_first(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+size_t
+arraym_{{funcname}}__count_last(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take(
+        ArrayM_{{typename}},
+        size_t n );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop(
+        ArrayM_{{typename}},
+        size_t n );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_end(
+        ArrayM_{{typename}},
+        size_t n );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_end(
+        ArrayM_{{typename}},
+        size_t n );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_while(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_end_while(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_while(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_end_while(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_1(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_2(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_end_1(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_end_2(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_1(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_2(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_end_1(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_end_2(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__section(
+        ArrayM_{{typename}},
+        size_t start,
+        size_t stop );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__section_s(
+        ArrayM_{{typename}},
+        intmax_t start,
+        intmax_t stop );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__left_half(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__right_half(
+        ArrayM_{{typename}} );
+
+
+{{type}} *
+arraym_{{funcname}}__find(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} *
+arraym_{{funcname}}__find_not(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} *
+arraym_{{funcname}}__find_last(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} *
+arraym_{{funcname}}__find_last_not(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_size
+arraym_{{funcname}}__find_index(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_size
+arraym_{{funcname}}__find_index_not(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_size
+arraym_{{funcname}}__find_last_index(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_size
+arraym_{{funcname}}__find_last_index_not(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__any(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__all(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__only_one(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__only_one_not(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}}
+arraym_{{funcname}}__foldl(
+        ArrayM_{{typename}} xs,
+        {{type}} init,
+        {{type}} ( * f )( {{type}} acc, {{type}} x ) );
+
+
+{{type}}
+arraym_{{funcname}}__foldl1(
+        ArrayM_{{typename}} xs,
+        {{type}} ( * f )( {{type}} acc, {{type}} x ) );
+
+
+{{type}}
+arraym_{{funcname}}__foldr(
+        ArrayM_{{typename}} xs,
+        {{type}} init,
+        {{type}} ( * f )( {{type}} x, {{type}} acc ) );
+
+
+{{type}}
+arraym_{{funcname}}__foldr1(
+        ArrayM_{{typename}} xs,
+        {{type}} ( * f )( {{type}} x, {{type}} acc ) );
+
+
+{{type}} *
+arraym_{{funcname}}__pick(
+        ArrayM_{{typename}} xs,
+        bool ( * f )( {{type}} const * pick, {{type}} x ) );
+
+
 struct arraym_{{funcname}}__each__options {
-    ArrayM_{{typename}} xs;
     void ( * f )( {{type}} );
     bool ( * b )( {{type}} );
     void ( * e )( {{type}} );
@@ -260,15 +805,15 @@ struct arraym_{{funcname}}__each__options {
 
 bool
 arraym_{{funcname}}__each_(
+        ArrayM_{{typename}},
         struct arraym_{{funcname}}__each__options );
 
-#define arraym_{{funcname}}__each( ... ) \
-    arraym_{{funcname}}__each_( \
+#define arraym_{{funcname}}__each( XS, ... ) \
+    arraym_{{funcname}}__each_( XS, \
         ( struct arraym_{{funcname}}__each__options ){ __VA_ARGS__ } )
 
 
 struct arraym_{{funcname}}__eachp__options {
-    ArrayM_{{typename}} xs;
     void ( * f )( {{type}} * );
     bool ( * b )( {{type}} * );
     void ( * e )( {{type}} * );
@@ -278,25 +823,49 @@ struct arraym_{{funcname}}__eachp__options {
 
 bool
 arraym_{{funcname}}__eachp_(
+        ArrayM_{{typename}},
         struct arraym_{{funcname}}__eachp__options );
 
-#define arraym_{{funcname}}__eachp( ... ) \
-    arraym_{{funcname}}__eachp_( \
+#define arraym_{{funcname}}__eachp( XS, ... ) \
+    arraym_{{funcname}}__eachp_( XS, \
         ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
 
 
-{{type}} const *
-arrayc_{{funcname}}__pick(
-        ArrayC_{{typename}} const xs,
-        bool ( * f )( {{type}} const * pick,
-                      {{type}} x ) );
+bool
+arraym_{{funcname}}__equal_by(
+        ArrayM_{{typename}} xs,
+        ArrayM_{{typename}} ys,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
+bool
+arraym_{{funcname}}__elem_by(
+        ArrayM_{{typename}} xs,
+        {{type}} y,
+        bool ( * f )( {{type}} x, {{type}} y ) );
 
 
 {{type}} *
-arraym_{{funcname}}__pick(
-        ArrayM_{{typename}} const xs,
-        bool ( * f )( {{type}} const * pick,
-                      {{type}} x ) );
+arraym_{{funcname}}__elem_ptr_by(
+        ArrayM_{{typename}} xs,
+        {{type}} y,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
+Maybe_size
+arraym_{{funcname}}__elem_index_by(
+        ArrayM_{{typename}} xs,
+        {{type}} y,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
+size_t
+arraym_{{funcname}}__elem_count_by(
+        ArrayM_{{typename}} xs,
+        {{type}} y,
+        bool ( * f )( {{type}} x, {{type}} y ) );
+
+
 
 
 {% macro typeclass_header(name) -%}
@@ -315,6 +884,10 @@ arraym_{{funcname}}__pick(
 
 {% call typeclass('EQ') %}
 
+
+// ARRAYC:
+
+
 bool
 arrayc_{{funcname}}__equal(
         ArrayC_{{typename}},
@@ -325,6 +898,34 @@ bool
 arrayc_{{funcname}}__not_equal(
         ArrayC_{{typename}},
         ArrayC_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__elem(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_ptr(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
+Maybe_size
+arrayc_{{funcname}}__elem_index(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
+size_t
+arrayc_{{funcname}}__elem_count(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
+
+// ARRAYM:
 
 
 bool
@@ -340,25 +941,25 @@ arraym_{{funcname}}__not_equal(
 
 
 bool
-arrayc_{{funcname}}__elem(
-        ArrayC_{{typename}},
-        {{type}} );
-
-
-bool
-arrayc_{{funcname}}__not_elem(
-        ArrayC_{{typename}},
-        {{type}} );
-
-
-bool
 arraym_{{funcname}}__elem(
         ArrayM_{{typename}},
         {{type}} );
 
 
-bool
-arraym_{{funcname}}__not_elem(
+{{type}} *
+arraym_{{funcname}}__elem_ptr(
+        ArrayM_{{typename}},
+        {{type}} );
+
+
+Maybe_size
+arraym_{{funcname}}__elem_index(
+        ArrayM_{{typename}},
+        {{type}} );
+
+
+size_t
+arraym_{{funcname}}__elem_count(
         ArrayM_{{typename}},
         {{type}} );
 
@@ -366,5 +967,5 @@ arraym_{{funcname}}__not_elem(
 {% endcall %}
 
 
-#endif // ifndef {{ include_guard }}
+#endif // ifndef LIBARRAY_ARRAY_{{macroname}}_H
 

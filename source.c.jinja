@@ -17,46 +17,124 @@
 // along with Libarray. If not, see <https://gnu.org/licenses/>.
 
 
-// This file is the result of running:
-//     {{' '.join(argv)}}
+// This file is the result of rendering:
+//
+//     {{template_path}}
+//
+// You should make changes to this file by tuning the build process, or (at a
+// stretch) modifying the generation script or template file; not by editing
+// this file as-is.
 
 
-{% set sys_headers = sys_headers.split() %}
-{% set rel_headers = rel_headers.split() %}
-{% set typeclasses = typeclasses.split() %}
-
-#include "{{header}}"
+#include "array-{{filename}}.h"
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <libtypes/types.h>
-#include <libmacro/assert.h>    // ASSERT
-#include <libmacro/logic.h>     // IMPLIES
+#include <libmacro/assert.h>
+#include <libmacro/logic.h>
+#include <libmacro/minmax.h>
+#include <libbase/size.h>
 
-{% for path in sys_headers %}
-#include <{{path}}>
+{% for p in sys_headers %}
+#include <{{p}}>
 {% endfor %}
 
-{% for path in rel_headers %}
-#include "{{path}}"
+{% for p in rel_headers %}
+#include "{{p}}"
 {% endfor %}
+
+
+static
+void *
+reallocn( void * const ptr,
+          size_t const n,
+          size_t const size )
+{
+    if ( !size__can_mul( n, size ) ) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    return realloc( ptr, n * size );
+}
+
+
+static
+size_t
+normalize_index( intmax_t const ix,
+                 size_t const length )
+{
+    if ( ix >= 0 ) {
+        return MIN( ( uintmax_t ) ix, SIZE_MAX );
+    } else {
+        if ( INTMAX_MAX < SIZE_MAX ) {
+            size_t const pos_ix = -ix;
+            if ( pos_ix > length ) {
+                return 0;
+            }
+        } else {
+            intmax_t const slength = length;
+            if ( -slength > ix ) {
+                return 0;
+            }
+        }
+        return length + ix;
+    }
+}
+
+
+static
+Maybe_size
+find_index(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ),
+        bool const res )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} const * const el = xs.e + i;
+        if ( f( *el ) == res ) {
+            return ( Maybe_size ){ .value = i };
+        }
+    }
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+static
+Maybe_size
+find_last_index(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ),
+        bool const res )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = xs.length; i > 0; i-- ) {
+        size_t const ix = i - 1;
+        if ( f( xs.e[ ix ] ) == res ) {
+            return ( Maybe_size ){ .value = ix };
+        }
+    }
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+
+///////////////////////////////////
+/// ARRAYC FUNCTIONS
+///////////////////////////////////
 
 
 bool
 arrayc_{{funcname}}__is_valid(
         ArrayC_{{typename}} const xs )
 {
-    return IMPLIES( xs.e == NULL, xs.length == 0 );
-}
-
-
-bool
-arraym_{{funcname}}__is_valid(
-        ArrayM_{{typename}} const xs )
-{
-    return IMPLIES( xs.e == NULL, xs.length == 0 );
+    return IMPLIES( xs.e == NULL, xs.length == 0 )
+        && size__can_mul( xs.length, sizeof ( {{type}} ) );
 }
 
 
@@ -68,69 +146,72 @@ arrayc_{{funcname}}__new(
     if ( elements == NULL ) {
         return ( ArrayC_{{typename}} ){ 0 };
     } else {
-        return ( ArrayC_{{typename}} ){
-            .e = elements,
-            .length = length
-        };
+        return ( ArrayC_{{typename}} ){ .e = elements, .length = length };
     }
 }
 
 
 ArrayC_{{typename}}
-arrayc_{{funcname}}__from_arraym(
+arrayc_{{funcname}}__view_arraym(
         ArrayM_{{typename}} const xs )
 {
     ASSERT( arraym_{{funcname}}__is_valid( xs ) );
 
-    return ( ArrayC_{{typename}} ){
-        .e = xs.e,
-        .length = xs.length
-    };
+    return ( ArrayC_{{typename}} ){ .e = xs.e, .length = xs.length };
 }
 
 
 ArrayM_{{typename}}
-arraym_{{funcname}}__new(
-        {{type}} const * const elements,
-        size_t const length )
+arrayc_{{funcname}}__to_arraym(
+        ArrayC_{{typename}} const from )
 {
-    ArrayM_{{typename}} const xs =
-            arraym_{{funcname}}__new_empty( length );
-    if ( errno ) { return xs; }
-    memcpy( xs.e, elements, length );
-    return xs;
-}
+    ASSERT( arrayc_{{funcname}}__is_valid( from ) );
 
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__new_empty(
-        size_t const length )
-{
-    errno = 0;
-    ArrayM_{{typename}} const xs = {
-        .length = length,
-        .e      = ( length == 0 )
-                      ? NULL
-                      : malloc( length * sizeof ( {{type}} ) )
-    };
-    if ( errno ) {
-        return ( ArrayM_{{typename}} ){ 0 };
-    } else {
-        return xs;
-    }
+    return arraym_{{funcname}}__new( from.e, from.length );
 }
 
 
 void
-arraym_{{funcname}}__free(
-        ArrayM_{{typename}} * const xs )
+arrayc_{{funcname}}__into_arraym(
+        ArrayC_{{typename}} const from,
+        ArrayM_{{typename}} const to )
 {
-    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+    ASSERT( arrayc_{{funcname}}__is_valid( from ),
+            arraym_{{funcname}}__is_valid( to ) );
 
-    if ( xs->length > 0 ) {
-        free( xs->e );
-        *xs = ( ArrayM_{{typename}} ){ 0 };
+    for ( size_t i = 0; i < MIN( from.length, to.length ); i++ ) {
+        to.e[ i ] = from.e[ i ];
     }
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__elements(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return xs.e;
+}
+
+
+size_t
+arrayc_{{funcname}}__length(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return xs.length;
+}
+
+
+size_t
+arrayc_{{funcname}}__size(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return xs.length * sizeof ( {{type}} );
 }
 
 
@@ -145,12 +226,22 @@ arrayc_{{funcname}}__is_empty(
 
 
 bool
-arraym_{{funcname}}__is_empty(
-        ArrayM_{{typename}} const xs )
+arrayc_{{funcname}}__isnt_empty(
+        ArrayC_{{typename}} const xs )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
 
-    return xs.length == 0;
+    return !arrayc_{{funcname}}__is_empty( xs );
+}
+
+
+bool
+arrayc_{{funcname}}__is_length_1(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return xs.length == 1;
 }
 
 
@@ -167,17 +258,6 @@ arrayc_{{funcname}}__same(
 }
 
 
-bool
-arraym_{{funcname}}__same(
-        ArrayM_{{typename}} const xs,
-        ArrayM_{{typename}} const ys )
-{
-    return arrayc_{{funcname}}__same(
-               arrayc_{{funcname}}__from_arraym( xs ),
-               arrayc_{{funcname}}__from_arraym( ys ) );
-}
-
-
 {{type}}
 arrayc_{{funcname}}__get(
         ArrayC_{{typename}} const xs,
@@ -189,62 +269,14 @@ arrayc_{{funcname}}__get(
 }
 
 
-{{type}}
-arraym_{{funcname}}__get(
-        ArrayM_{{typename}} const xs,
-        size_t const index )
-{
-    return arrayc_{{funcname}}__get(
-               arrayc_{{funcname}}__from_arraym( xs ), index );
-}
-
-
 {{type}} const *
 arrayc_{{funcname}}__get_ptr(
         ArrayC_{{typename}} const xs,
         size_t const index )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ), index < xs.length );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
 
-    return xs.e + index;
-}
-
-
-{{type}} *
-arraym_{{funcname}}__get_ptr(
-        ArrayM_{{typename}} const xs,
-        size_t index )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), index < xs.length );
-
-    return xs.e + index;
-}
-
-
-{{type}}
-arraym_{{funcname}}__set(
-        ArrayM_{{typename}} const xs,
-        size_t const index,
-        {{type}} const value )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), index < xs.length );
-
-    {{type}} const old = xs.e[ index ];
-    xs.e[ index ] = value;
-    return old;
-}
-
-
-void
-arraym_{{funcname}}__set_all(
-        ArrayM_{{typename}} const xs,
-        {{type}} const value )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
-
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        xs.e[ i ] = value;
-    }
+    return ( index < xs.length ) ? ( xs.e + index ) : ( NULL );
 }
 
 
@@ -252,18 +284,19 @@ arraym_{{funcname}}__set_all(
 arrayc_{{funcname}}__first(
         ArrayC_{{typename}} const xs )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length >= 1 );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length > 0 );
 
     return xs.e[ 0 ];
 }
 
 
-{{type}}
-arraym_{{funcname}}__first(
-        ArrayM_{{typename}} const xs )
+{{type}} const *
+arrayc_{{funcname}}__first_ptr(
+        ArrayC_{{typename}} const xs )
 {
-    return arrayc_{{funcname}}__first(
-               arrayc_{{funcname}}__from_arraym( xs ) );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return ( xs.length == 0 ) ? NULL : xs.e;
 }
 
 
@@ -271,44 +304,74 @@ arraym_{{funcname}}__first(
 arrayc_{{funcname}}__last(
         ArrayC_{{typename}} const xs )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length >= 1 );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length > 0 );
 
-    return xs.e[ xs.length - 1 ];
+    return *( arrayc_{{funcname}}__last_ptr( xs ) );
 }
 
 
-{{type}}
-arraym_{{funcname}}__last(
-        ArrayM_{{typename}} const xs )
+{{type}} const *
+arrayc_{{funcname}}__last_ptr(
+        ArrayC_{{typename}} const xs )
 {
-    return arrayc_{{funcname}}__last(
-               arrayc_{{funcname}}__from_arraym( xs ) );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return ( xs.length == 0 ) ? ( NULL ) : ( xs.e + ( xs.length - 1 ) );
 }
 
 
-bool
-arrayc_{{funcname}}__elem_by(
+size_t
+arrayc_{{funcname}}__count(
         ArrayC_{{typename}} const xs,
-        {{type}} const x,
-        bool ( * eq )( {{type}}, {{type}} ) )
+        bool ( * const f )( {{type}} ) )
 {
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    size_t count = 0;
     for ( size_t i = 0; i < xs.length; i++ ) {
-        if ( eq( x, xs.e[ i ] ) ) {
-            return true;
+        if ( f( xs.e[ i ] ) ) {
+            count++;
         }
     }
-    return false;
+    return count;
 }
 
 
-bool
-arraym_{{funcname}}__elem_by(
-        ArrayM_{{typename}} const xs,
-        {{type}} const x,
-        bool ( * eq )( {{type}}, {{type}} ) )
+size_t
+arrayc_{{funcname}}__count_first(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
 {
-    return arrayc_{{funcname}}__elem_by(
-               arrayc_{{funcname}}__from_arraym( xs ), x, eq );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    size_t count = 0;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        if ( f( xs.e[ i ] ) ) {
+            count++;
+        } else {
+            break;
+        }
+    }
+    return count;
+}
+
+
+size_t
+arrayc_{{funcname}}__count_last(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    size_t count = 0;
+    for ( size_t i = xs.length; i > 0; i-- ) {
+        if ( f( xs.e[ i - 1 ] ) ) {
+            count++;
+        } else {
+            break;
+        }
+    }
+    return count;
 }
 
 
@@ -375,6 +438,261 @@ arrayc_{{funcname}}__drop_end(
 }
 
 
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_while(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__take(
+               xs,
+               arrayc_{{funcname}}__count_first( xs, f ) );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_end_while(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__take_end(
+               xs,
+               arrayc_{{funcname}}__count_last( xs, f ) );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_while(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__drop(
+               xs,
+               arrayc_{{funcname}}__count_first( xs, f ) );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_end_while(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__drop_end(
+               xs,
+               arrayc_{{funcname}}__count_last( xs, f ) );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_1(
+        ArrayC_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__take( xs, 1 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_2(
+        ArrayC_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__take( xs, 2 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_end_1(
+        ArrayC_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__take_end( xs, 1 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__take_end_2(
+        ArrayC_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__take_end( xs, 2 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_1(
+        ArrayC_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__drop( xs, 1 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_2(
+        ArrayC_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__drop( xs, 2 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_end_1(
+        ArrayC_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__drop_end( xs, 1 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__drop_end_2(
+        ArrayC_{{typename}} const xs )
+{
+    return arrayc_{{funcname}}__drop_end( xs, 2 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__section(
+        ArrayC_{{typename}} const xs,
+        size_t const start,
+        size_t const stop )
+{
+    return arrayc_{{funcname}}__drop(
+               arrayc_{{funcname}}__take( xs, stop ),
+               start );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__section_s(
+        ArrayC_{{typename}} const xs,
+        intmax_t const start,
+        intmax_t const stop )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__section(
+               xs,
+               normalize_index( start, xs.length ),
+               normalize_index( stop, xs.length ) );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__left_half(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__take( xs, xs.length / 2 );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__right_half(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__drop( xs, xs.length / 2 );
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__find(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arrayc_{{funcname}}__find_index( xs, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__find_not(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arrayc_{{funcname}}__find_index_not( xs, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__find_last(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arrayc_{{funcname}}__find_last_index( xs, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__find_last_not(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arrayc_{{funcname}}__find_last_index_not( xs, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__find_index(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return find_index( xs, f, true );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__find_index_not(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return find_index( xs, f, false );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__find_last_index(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return find_last_index( xs, f, true );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__find_last_index_not(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return find_last_index( xs, f, false );
+}
+
+
 bool
 arrayc_{{funcname}}__any(
         ArrayC_{{typename}} const xs,
@@ -382,23 +700,7 @@ arrayc_{{funcname}}__any(
 {
     ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
 
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        if ( f( xs.e[ i ] ) ) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
-bool
-arraym_{{funcname}}__any(
-        ArrayM_{{typename}} const xs,
-        bool ( * const f )( {{type}} ) )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
-
-    return arrayc_{{funcname}}__any( arrayc_{{funcname}}__from_arraym( xs ), f );
+    return arrayc_{{funcname}}__find( xs, f ) != NULL;
 }
 
 
@@ -409,35 +711,129 @@ arrayc_{{funcname}}__all(
 {
     ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
 
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        if ( !f( xs.e[ i ] ) ) {
-            return false;
-        }
-    }
-    return true;
+    return arrayc_{{funcname}}__find_not( xs, f ) == NULL;
 }
 
 
 bool
-arraym_{{funcname}}__all(
-        ArrayM_{{typename}} const xs,
+arrayc_{{funcname}}__only_one(
+        ArrayC_{{typename}} const xs,
         bool ( * const f )( {{type}} ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
 
-    return arrayc_{{funcname}}__all(
-                   arrayc_{{funcname}}__from_arraym( xs ), f );
+    {{type}} const * const first = arrayc_{{funcname}}__find( xs, f );
+    if ( first == NULL ) {
+        return false;
+    } else {
+        return first == arrayc_{{funcname}}__find_last( xs, f );
+    }
+}
+
+
+bool
+arrayc_{{funcname}}__only_one_not(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    {{type}} const * const first = arrayc_{{funcname}}__find_not( xs, f );
+    if ( first == NULL ) {
+        return false;
+    } else {
+        return first == arrayc_{{funcname}}__find_last_not( xs, f );
+    }
+}
+
+
+{{type}}
+arrayc_{{funcname}}__foldl(
+        ArrayC_{{typename}} const xs,
+        {{type}} const init,
+        {{type}} ( * const f )( {{type}} acc, {{type}} x ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    {{type}} acc = init;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        acc = f( acc, xs.e[ i ] );
+    }
+    return acc;
+}
+
+
+{{type}}
+arrayc_{{funcname}}__foldl1(
+        ArrayC_{{typename}} xs,
+        {{type}} ( * f )( {{type}} acc, {{type}} x ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length > 0, f != NULL );
+
+    return arrayc_{{funcname}}__foldl(
+               arrayc_{{funcname}}__drop( xs, 1 ),
+               arrayc_{{funcname}}__first( xs ),
+               f );
+}
+
+
+{{type}}
+arrayc_{{funcname}}__foldr(
+        ArrayC_{{typename}} xs,
+        {{type}} init,
+        {{type}} ( * f )( {{type}} x, {{type}} acc ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    {{type}} acc = init;
+    for ( size_t i = xs.length; i > 0; i-- ) {
+        acc = f( xs.e[ i - 1 ], acc );
+    }
+    return acc;
+}
+
+
+{{type}}
+arrayc_{{funcname}}__foldr1(
+        ArrayC_{{typename}} xs,
+        {{type}} ( * f )( {{type}} x, {{type}} acc ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length > 0, f != NULL );
+
+    return arrayc_{{funcname}}__foldr(
+               arrayc_{{funcname}}__drop_end( xs, 1 ),
+               arrayc_{{funcname}}__last( xs ),
+               f );
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__pick(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} const * pick, {{type}} x ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    {{type}} const * pick = NULL;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} const * const el = xs.e + i;
+        if ( f( pick, *el ) ) {
+            pick = el;
+        }
+    }
+    return pick;
 }
 
 
 bool
 arrayc_{{funcname}}__each_(
+        ArrayC_{{typename}} const xs,
         struct arrayc_{{funcname}}__each__options const o )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( o.xs ) );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
 
-    for ( size_t i = 0; i < o.xs.length; i++ ) {
-        {{type}} const el = o.xs.e[ i ];
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} const el = xs.e[ i ];
         if ( ( o.where != NULL && !o.where( el ) )
           || ( o.where_not != NULL && o.where_not( el ) ) ) {
             continue;
@@ -456,57 +852,812 @@ arrayc_{{funcname}}__each_(
 
 
 bool
-arraym_{{funcname}}__each_(
-        struct arraym_{{funcname}}__each__options const o )
+arrayc_{{funcname}}__equal_by(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
 {
-    return arrayc_{{funcname}}__each(
-                   arrayc_{{funcname}}__from_arraym( o.xs ),
-                   .f = o.f, .b = o.b, .e = o.e,
-                   .where = o.where, .where_not = o.where_not );
-}
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
 
-
-bool
-arraym_{{funcname}}__eachp_(
-        struct arraym_{{funcname}}__eachp__options const o )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( o.xs ) );
-
-    for ( size_t i = 0; i < o.xs.length; i++ ) {
-        {{type}} * const el = o.xs.e + i;
-        if ( ( o.where != NULL && !o.where( *el ) )
-          || ( o.where_not != NULL && o.where_not( *el ) ) ) {
-            continue;
-        }
-        if ( o.e != NULL ) {
-            o.e( el );
-            if ( errno ) { return false; }
-        } else if ( o.b != NULL ) {
-            if ( o.b( el ) == false ) { return false; }
-        } else if ( o.f != NULL ) {
-            o.f( el );
+    if ( xs.length != ys.length ) {
+        return false;
+    }
+    if ( xs.e == ys.e ) {
+        return true;
+    }
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        if ( !f( xs.e[ i ], ys.e[ i ] ) ) {
+            return false;
         }
     }
     return true;
 }
 
 
-{{type}} const *
-arrayc_{{funcname}}__pick(
+bool
+arrayc_{{funcname}}__elem_by(
         ArrayC_{{typename}} const xs,
-        bool ( * const f )( {{type}} const * pick,
-                            {{type}} x ) )
+        {{type}} const y,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
 {
     ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
 
-    {{type}} const * pick = NULL;
+    return arrayc_{{funcname}}__elem_ptr_by( xs, y, f ) != NULL;
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_ptr_by(
+        ArrayC_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arrayc_{{funcname}}__elem_index_by( xs, y, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__elem_index_by(
+        ArrayC_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
     for ( size_t i = 0; i < xs.length; i++ ) {
-        {{type}} const * const el = xs.e + i;
-        if ( f( pick, *el ) ) {
-            pick = el;
+        if ( f( xs.e[ i ], y ) ) {
+            return ( Maybe_size ){ .value = i };
         }
     }
-    return pick;
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+size_t
+arrayc_{{funcname}}__elem_count_by(
+        ArrayC_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    size_t count = 0;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        if ( f( xs.e[ i ], y ) ) {
+            count++;
+        }
+    }
+    return count;
+}
+
+
+
+
+///////////////////////////////////
+/// ARRAYM FUNCTIONS
+///////////////////////////////////
+
+
+bool
+arraym_{{funcname}}__is_valid(
+        ArrayM_{{typename}} const xs )
+{
+    return IMPLIES( xs.e == NULL, xs.length == 0 )
+        && size__can_mul( xs.length, sizeof ( {{type}} ) );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new(
+        {{type}} const * const elements,
+        size_t const length )
+{
+    if ( elements == NULL ) {
+        return ( ArrayM_{{typename}} ){ 0 };
+    } else {
+        errno = 0;
+        ArrayM_{{typename}} const new =
+                arraym_{{funcname}}__new_alloc( length );
+        if ( errno ) { return ( ArrayM_{{typename}} ){ 0 }; }
+        arrayc_{{funcname}}__into_arraym(
+                ( ArrayC_{{typename}} ){ .e = elements, .length = length },
+                new );
+        return new;
+    }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new_alloc(
+        size_t const length )
+{
+    errno = 0;
+    {{type}} * const e = ( length == 0 )
+                             ? NULL
+                             : reallocn( NULL, length, sizeof ( {{type}} ) );
+    if ( errno ) {
+        return ( ArrayM_{{typename}} ){ 0 };
+    }
+    return ( ArrayM_{{typename}} ){ .e = e, .length = length };
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy(
+        ArrayM_{{typename}} const from )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( from ) );
+
+    return arraym_{{funcname}}__new( from.e, from.length );
+}
+
+
+void
+arraym_{{funcname}}__into_arraym(
+        ArrayM_{{typename}} const from,
+        ArrayM_{{typename}} const to )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( from ),
+            arraym_{{funcname}}__is_valid( to ) );
+
+    arrayc_{{funcname}}__into_arraym(
+        arrayc_{{funcname}}__view_arraym( from ), to );
+}
+
+
+void
+arraym_{{funcname}}__realloc(
+        ArrayM_{{typename}} * const xs,
+        size_t const new_length )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    {{type}} * const new = reallocn( xs->e, new_length, sizeof ( {{type}} ) );
+    if ( errno ) { return; }
+    xs->e      = new;
+    xs->length = new_length;
+}
+
+
+void
+arraym_{{funcname}}__free(
+        ArrayM_{{typename}} * const xs )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    arraym_{{funcname}}__freev( *xs );
+    *xs = ( ArrayM_{{typename}} ){ 0 };
+}
+
+
+void
+arraym_{{funcname}}__freev(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    if ( xs.e != NULL ) {
+        free( xs.e );
+    }
+}
+
+
+{{type}} *
+arraym_{{funcname}}__elements(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return xs.e;
+}
+
+
+size_t
+arraym_{{funcname}}__length(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return xs.length;
+}
+
+
+size_t
+arraym_{{funcname}}__size(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__size( arrayc_{{funcname}}__view_arraym( xs ) );
+}
+
+
+bool
+arraym_{{funcname}}__is_empty(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__is_empty(
+               arrayc_{{funcname}}__view_arraym( xs ) );
+}
+
+
+bool
+arraym_{{funcname}}__isnt_empty(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return !arraym_{{funcname}}__is_empty( xs );
+}
+
+
+bool
+arraym_{{funcname}}__is_length_1(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return xs.length == 1;
+}
+
+
+bool
+arraym_{{funcname}}__same(
+        ArrayM_{{typename}} const xs,
+        ArrayM_{{typename}} const ys )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ),
+            arraym_{{funcname}}__is_valid( ys ) );
+
+    return arrayc_{{funcname}}__same(
+               arrayc_{{funcname}}__view_arraym( xs ),
+               arrayc_{{funcname}}__view_arraym( ys ) );
+}
+
+
+{{type}}
+arraym_{{funcname}}__get(
+        ArrayM_{{typename}} const xs,
+        size_t const index )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), index < xs.length );
+
+    return xs.e[ index ];
+}
+
+
+{{type}} *
+arraym_{{funcname}}__get_ptr(
+        ArrayM_{{typename}} const xs,
+        size_t index )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return ( index < xs.length ) ? ( xs.e + index ) : ( NULL );
+}
+
+
+{{type}}
+arraym_{{funcname}}__set(
+        ArrayM_{{typename}} const xs,
+        size_t const index,
+        {{type}} const value )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), index < xs.length );
+
+    {{type}} const old = xs.e[ index ];
+    xs.e[ index ] = value;
+    return old;
+}
+
+
+void
+arraym_{{funcname}}__set_all(
+        ArrayM_{{typename}} const xs,
+        {{type}} const value )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        xs.e[ i ] = value;
+    }
+}
+
+
+{{type}}
+arraym_{{funcname}}__first(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), xs.length > 0 );
+
+    return xs.e[ 0 ];
+}
+
+
+{{type}} *
+arraym_{{funcname}}__first_ptr(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return ( xs.length == 0 ) ? NULL : xs.e;
+}
+
+
+{{type}}
+arraym_{{funcname}}__last(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), xs.length > 0 );
+
+    return *( arraym_{{funcname}}__last_ptr( xs ) );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__last_ptr(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return ( xs.length == 0 ) ? ( NULL ) : ( xs.e + ( xs.length - 1 ) );
+}
+
+
+size_t
+arraym_{{funcname}}__count(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__count(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
+}
+
+
+size_t
+arraym_{{funcname}}__count_first(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__count_first(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
+}
+
+
+size_t
+arraym_{{funcname}}__count_last(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__count_last(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take(
+        ArrayM_{{typename}} const xs,
+        size_t const n )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    if ( n >= xs.length ) {
+        return xs;
+    } else {
+        return ( ArrayM_{{typename}} ){ .e = xs.e, .length = n };
+    }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop(
+        ArrayM_{{typename}} const xs,
+        size_t const n )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    if ( n >= xs.length ) {
+        return ( ArrayM_{{typename}} ){ 0 };
+    } else {
+        return ( ArrayM_{{typename}} ){
+            .e      = xs.e + n,
+            .length = xs.length - n
+        };
+    }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_end(
+        ArrayM_{{typename}} const xs,
+        size_t const n )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    if ( n >= xs.length ) {
+        return xs;
+    } else {
+        return arraym_{{funcname}}__drop( xs, xs.length - n );
+    }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_end(
+        ArrayM_{{typename}} const xs,
+        size_t const n )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    if ( n >= xs.length ) {
+        return ( ArrayM_{{typename}} ){ 0 };
+    } else {
+        return arraym_{{funcname}}__take( xs, xs.length - n );
+    }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_while(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arraym_{{funcname}}__take(
+               xs,
+               arraym_{{funcname}}__count_first( xs, f ) );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_end_while(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arraym_{{funcname}}__take_end(
+               xs,
+               arraym_{{funcname}}__count_last( xs, f ) );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_while(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arraym_{{funcname}}__drop(
+               xs,
+               arraym_{{funcname}}__count_first( xs, f ) );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_end_while(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arraym_{{funcname}}__drop_end(
+               xs,
+               arraym_{{funcname}}__count_last( xs, f ) );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_1(
+        ArrayM_{{typename}} const xs )
+{
+    return arraym_{{funcname}}__take( xs, 1 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_2(
+        ArrayM_{{typename}} const xs )
+{
+    return arraym_{{funcname}}__take( xs, 2 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_end_1(
+        ArrayM_{{typename}} const xs )
+{
+    return arraym_{{funcname}}__take_end( xs, 1 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__take_end_2(
+        ArrayM_{{typename}} const xs )
+{
+    return arraym_{{funcname}}__take_end( xs, 2 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_1(
+        ArrayM_{{typename}} const xs )
+{
+    return arraym_{{funcname}}__drop( xs, 1 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_2(
+        ArrayM_{{typename}} const xs )
+{
+    return arraym_{{funcname}}__drop( xs, 2 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_end_1(
+        ArrayM_{{typename}} const xs )
+{
+    return arraym_{{funcname}}__drop_end( xs, 1 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__drop_end_2(
+        ArrayM_{{typename}} const xs )
+{
+    return arraym_{{funcname}}__drop_end( xs, 2 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__section(
+        ArrayM_{{typename}} const xs,
+        size_t const start,
+        size_t const stop )
+{
+    return arraym_{{funcname}}__drop(
+               arraym_{{funcname}}__take( xs, stop ),
+               start );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__section_s(
+        ArrayM_{{typename}} const xs,
+        intmax_t const start,
+        intmax_t const stop )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__section(
+               xs,
+               normalize_index( start, xs.length ),
+               normalize_index( stop, xs.length ) );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__left_half(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__take( xs, xs.length / 2 );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__right_half(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__drop( xs, xs.length / 2 );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__find(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arraym_{{funcname}}__find_index( xs, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__find_not(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arraym_{{funcname}}__find_index_not( xs, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__find_last(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arraym_{{funcname}}__find_last_index( xs, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__find_last_not(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arraym_{{funcname}}__find_last_index_not( xs, f );
+    return mi.nothing ? NULL : ( xs.e + mi.value );
+}
+
+
+Maybe_size
+arraym_{{funcname}}__find_index(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return find_index( arrayc_{{funcname}}__view_arraym( xs ), f, true );
+}
+
+
+Maybe_size
+arraym_{{funcname}}__find_index_not(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return find_index( arrayc_{{funcname}}__view_arraym( xs ), f, false );
+}
+
+
+Maybe_size
+arraym_{{funcname}}__find_last_index(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return find_last_index( arrayc_{{funcname}}__view_arraym( xs ), f, true );
+}
+
+
+Maybe_size
+arraym_{{funcname}}__find_last_index_not(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return find_last_index( arrayc_{{funcname}}__view_arraym( xs ), f, false );
+}
+
+
+bool
+arraym_{{funcname}}__any(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__any(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
+}
+
+
+bool
+arraym_{{funcname}}__all(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__all(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
+}
+
+
+bool
+arraym_{{funcname}}__only_one(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__only_one(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
+}
+
+
+bool
+arraym_{{funcname}}__only_one_not(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__only_one_not(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
+}
+
+
+{{type}}
+arraym_{{funcname}}__foldl(
+        ArrayM_{{typename}} const xs,
+        {{type}} const init,
+        {{type}} ( * const f )( {{type}} acc, {{type}} x ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__foldl(
+               arrayc_{{funcname}}__view_arraym( xs ), init, f );
+}
+
+
+{{type}}
+arraym_{{funcname}}__foldl1(
+        ArrayM_{{typename}} xs,
+        {{type}} ( * f )( {{type}} acc, {{type}} x ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), xs.length > 0, f != NULL );
+
+    return arrayc_{{funcname}}__foldl1(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
+}
+
+
+{{type}}
+arraym_{{funcname}}__foldr(
+        ArrayM_{{typename}} xs,
+        {{type}} init,
+        {{type}} ( * f )( {{type}} x, {{type}} acc ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__foldr(
+               arrayc_{{funcname}}__view_arraym( xs ), init, f );
+}
+
+
+{{type}}
+arraym_{{funcname}}__foldr1(
+        ArrayM_{{typename}} xs,
+        {{type}} ( * f )( {{type}} x, {{type}} acc ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), xs.length > 0, f != NULL );
+
+    return arrayc_{{funcname}}__foldr1(
+               arrayc_{{funcname}}__view_arraym( xs ), f );
 }
 
 
@@ -529,6 +1680,112 @@ arraym_{{funcname}}__pick(
 }
 
 
+bool
+arraym_{{funcname}}__each_(
+        ArrayM_{{typename}} const xs,
+        struct arraym_{{funcname}}__each__options const o )
+{
+    return arrayc_{{funcname}}__each(
+                   arrayc_{{funcname}}__view_arraym( xs ),
+                   .f = o.f, .b = o.b, .e = o.e,
+                   .where = o.where, .where_not = o.where_not );
+}
+
+
+bool
+arraym_{{funcname}}__eachp_(
+        ArrayM_{{typename}} const xs,
+        struct arraym_{{funcname}}__eachp__options const o )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const el = xs.e + i;
+        if ( ( o.where != NULL && !o.where( *el ) )
+          || ( o.where_not != NULL && o.where_not( *el ) ) ) {
+            continue;
+        }
+        if ( o.e != NULL ) {
+            o.e( el );
+            if ( errno ) { return false; }
+        } else if ( o.b != NULL ) {
+            if ( o.b( el ) == false ) { return false; }
+        } else if ( o.f != NULL ) {
+            o.f( el );
+        }
+    }
+    return true;
+}
+
+
+bool
+arraym_{{funcname}}__equal_by(
+        ArrayM_{{typename}} const xs,
+        ArrayM_{{typename}} const ys,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__equal_by(
+               arrayc_{{funcname}}__view_arraym( xs ),
+               arrayc_{{funcname}}__view_arraym( ys ),
+               f );
+}
+
+
+bool
+arraym_{{funcname}}__elem_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__elem_by(
+               arrayc_{{funcname}}__view_arraym( xs ), y, f );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__elem_ptr_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    Maybe_size const mi = arraym_{{funcname}}__elem_index_by( xs, y, f );
+    return ( mi.nothing ) ? NULL : ( xs.e + mi.value );
+}
+
+
+Maybe_size
+arraym_{{funcname}}__elem_index_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__elem_index_by(
+               arrayc_{{funcname}}__view_arraym( xs ), y, f );
+}
+
+
+size_t
+arraym_{{funcname}}__elem_count_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const f )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__elem_count_by(
+               arrayc_{{funcname}}__view_arraym( xs ), y, f );
+}
+
+
+
 
 {% macro typeclass_header(name) -%}
 ///////////////////////////////////
@@ -546,6 +1803,10 @@ arraym_{{funcname}}__pick(
 
 {% call typeclass('EQ') %}
 
+
+// ARRAYC:
+
+
 bool
 arrayc_{{funcname}}__equal(
         ArrayC_{{typename}} const xs,
@@ -554,16 +1815,7 @@ arrayc_{{funcname}}__equal(
     ASSERT( arrayc_{{funcname}}__is_valid( xs ),
             arrayc_{{funcname}}__is_valid( ys ) );
 
-    if ( xs.length != ys.length ) {
-        return false;
-    } else {
-        for ( size_t i = 0; i < xs.length; i++ ) {
-            if ( !{{funcname}}__equal( xs.e[ i ], ys.e[ i ] ) ) {
-                return false;
-            }
-        }
-        return true;
-    }
+    return arrayc_{{funcname}}__equal_by( xs, ys, {{funcname}}__equal );
 }
 
 
@@ -577,13 +1829,51 @@ arrayc_{{funcname}}__not_equal(
 
 
 bool
+arrayc_{{funcname}}__elem(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arrayc_{{funcname}}__elem_by( xs, x, {{funcname}}__equal );
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_ptr(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arrayc_{{funcname}}__elem_ptr_by( xs, x, {{funcname}}__equal );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__elem_index(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arrayc_{{funcname}}__elem_index_by( xs, x, {{funcname}}__equal );
+}
+
+
+size_t
+arrayc_{{funcname}}__elem_count(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arrayc_{{funcname}}__elem_count_by( xs, x, {{funcname}}__equal );
+}
+
+
+
+// ARRAYM:
+
+
+bool
 arraym_{{funcname}}__equal(
         ArrayM_{{typename}} const xs,
         ArrayM_{{typename}} const ys )
 {
-    return arrayc_{{funcname}}__equal(
-               arrayc_{{funcname}}__from_arraym( xs ),
-               arrayc_{{funcname}}__from_arraym( ys ) );
+    return arraym_{{funcname}}__equal_by( xs, ys, {{funcname}}__equal );
 }
 
 
@@ -597,24 +1887,6 @@ arraym_{{funcname}}__not_equal(
 
 
 bool
-arrayc_{{funcname}}__elem(
-        ArrayC_{{typename}} const xs,
-        {{type}} const x )
-{
-    return arrayc_{{funcname}}__elem_by( xs, x, {{funcname}}__equal );
-}
-
-
-bool
-arrayc_{{funcname}}__not_elem(
-        ArrayC_{{typename}} const xs,
-        {{type}} const x )
-{
-    return !arrayc_{{funcname}}__elem( xs, x );
-}
-
-
-bool
 arraym_{{funcname}}__elem(
         ArrayM_{{typename}} const xs,
         {{type}} const x )
@@ -623,12 +1895,30 @@ arraym_{{funcname}}__elem(
 }
 
 
-bool
-arraym_{{funcname}}__not_elem(
+{{type}} *
+arraym_{{funcname}}__elem_ptr(
         ArrayM_{{typename}} const xs,
         {{type}} const x )
 {
-    return !arraym_{{funcname}}__elem( xs, x );
+    return arraym_{{funcname}}__elem_ptr_by( xs, x, {{funcname}}__equal );
+}
+
+
+Maybe_size
+arraym_{{funcname}}__elem_index(
+        ArrayM_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arraym_{{funcname}}__elem_index_by( xs, x, {{funcname}}__equal );
+}
+
+
+size_t
+arraym_{{funcname}}__elem_count(
+        ArrayM_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arraym_{{funcname}}__elem_count_by( xs, x, {{funcname}}__equal );
 }
 
 

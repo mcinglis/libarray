@@ -17,26 +17,26 @@
 // along with Libarray. If not, see <https://gnu.org/licenses/>.
 
 
-// This file is the result of running:
-//     {{' '.join(argv)}}
+// This file is the result of rendering:
+//
+//     {{template_path}}
+//
+// You should make changes to this file by tuning the build process, or (at a
+// stretch) modifying the generation script or template file; not by editing
+// this file as-is.
 
 
-{% set sys_headers = sys_headers.split() %}
-{% set rel_headers = rel_headers.split() %}
-
-
-#ifndef {{include_guard}}
-#define {{include_guard}}
+#ifndef LIBARRAY_DEF_ARRAY_{{macroname}}_H
+#define LIBARRAY_DEF_ARRAY_{{macroname}}_H
 
 
 #include <libtypes/types.h>
-
-{% for path in sys_headers %}
-#include <{{path}}>
+{% for p in sys_headers %}
+#include <{{p}}>
 {% endfor %}
 
 {% for path in rel_headers %}
-#include "{{path}}"
+#include "{{p}}"
 {% endfor %}
 
 
@@ -57,5 +57,5 @@ typedef struct arraym_{{funcname}} {
       .length = NELEM( ( {{type}}[] ){ __VA_ARGS__ } ) }
 
 
-#endif // ifndef {{ include_guard }}
+#endif // ifndef LIBARRAY_DEF_ARRAY_{{macroname}}_H
 
