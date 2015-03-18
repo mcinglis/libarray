@@ -453,6 +453,11 @@ arraym_{{funcname}}__new_alloc(
         size_t length );
 
 
+#define arraym_{{funcname}}__new_els( ... ) \
+    arraym_{{funcname}}__copy( \
+        ( ArrayM_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ ) )
+
+
 ArrayM_{{typename}}
 arraym_{{funcname}}__copy(
         ArrayM_{{typename}} );
