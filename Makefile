@@ -5,8 +5,8 @@
 
 DEPS_DIR ?= ./deps
 
-LIBBASE  ?= $(DEPS_DIR)/libbase
-LIBMAYBE ?= $(DEPS_DIR)/libmaybe
+LIBBASE  := $(DEPS_DIR)/libbase
+LIBMAYBE := $(DEPS_DIR)/libmaybe
 
 CPPFLAGS += -I$(DEPS_DIR)
 
@@ -73,7 +73,7 @@ mkdeps := $(test_gen_objects:.o=.dep.mk)
 ##############################
 
 .PHONY: all
-all:
+all: tests
 
 .PHONY: tests
 tests: $(test_binaries)
