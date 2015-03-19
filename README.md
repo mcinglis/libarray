@@ -22,7 +22,9 @@ $ puck update
 $ puck execute build
 ```
 
-There's nothing magic to what Puck does, so if you would prefer, you can set up the dependencies manually. You just need to have the dependencies in the `deps` directory within the Libarray directory, and have them built (if necessary) before building Libarray
+There's nothing magic to what Puck does, so if you would prefer, you can set up the dependencies manually. You just need to have the dependencies in the `deps` directory within the Libarray directory, and have them built (if necessary) before building Libarray.
+
+There is no `build` command specified for Libargs, because you should manage the building of Libargs' sources in your own project. The dependencies rely on generated source files, and you would want to have that process integrated with the rest of your project, avoiding multiple libraries trying to generate the same file differently. Despite this, there is a `Makefile` provided with the bare minimum to build the tests.
 
 
 ## Collaboration
