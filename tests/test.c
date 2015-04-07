@@ -62,6 +62,33 @@ test_array_ptrm_int( void )
 }
 
 
+static
+void
+test_replace( void )
+{
+    ArrayC_short const xs = ARRAY_SHORT( 3, 4, -8, 4, 4, 5, 4, -1 );
+
+    ArrayM_short const ys = arrayc_short__replaced( xs, 4, 6 );
+    ASSERT( arraym_short__equal( ys,
+                ( ArrayM_short ) ARRAY_SHORT( 3, 6, -8, 6, 6, 5, 6, -1 ) ) );
+
+    arraym_short__replace( ys, 5, 0 );
+    ASSERT( arraym_short__equal( ys,
+                ( ArrayM_short ) ARRAY_SHORT( 3, 6, -8, 6, 6, 0, 6, -1 ) ) );
+
+    arraym_short__replacef( ys, short__is_negative, 7 );
+    ASSERT( arraym_short__equal( ys,
+                ( ArrayM_short ) ARRAY_SHORT( 3, 6, 7, 6, 6, 0, 6, 7 ) ) );
+
+    ArrayM_short const zs = arraym_short__replacedf( ys, short__is_zero, 1 );
+    ASSERT( arraym_short__equal( zs,
+                ( ArrayM_short ) ARRAY_SHORT( 3, 6, 7, 6, 6, 1, 6, 7 ) ) );
+
+    arraym_short__freev( ys );
+    arraym_short__freev( zs );
+}
+
+
 int
 main( void )
 {
@@ -71,5 +98,7 @@ main( void )
     printf( "All `array-uintmax` assertions passed.\n" );
     test_array_ptrm_int();
     printf( "All `array-ptrm-int` assertions passed.\n" );
+    test_replace();
+    printf( "All replacement tests passed.\n" );
 }
 

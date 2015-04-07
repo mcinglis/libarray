@@ -377,6 +377,13 @@ arrayc_{{funcname}}__pick(
         bool ( * f )( {{type}} const * pick, {{type}} x ) );
 
 
+ArrayM_{{typename}}
+arrayc_{{funcname}}__replacedf(
+        ArrayC_{{typename}} xs,
+        bool ( * f )( {{type}} x ),
+        {{type}} replacement );
+
+
 struct arrayc_{{funcname}}__each__options {
     void ( * f )( {{type}} );
     bool ( * b )( {{type}} );
@@ -399,35 +406,43 @@ bool
 arrayc_{{funcname}}__equal_by(
         ArrayC_{{typename}} xs,
         ArrayC_{{typename}} ys,
-        bool ( * f )( {{type}} x, {{type}} y ) );
+        bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
 bool
 arrayc_{{funcname}}__elem_by(
         ArrayC_{{typename}} xs,
         {{type}} y,
-        bool ( * f )( {{type}} x, {{type}} y ) );
+        bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
 {{type}} const *
 arrayc_{{funcname}}__elem_ptr_by(
         ArrayC_{{typename}} xs,
         {{type}} y,
-        bool ( * f )( {{type}} x, {{type}} y ) );
+        bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
 Maybe_size
 arrayc_{{funcname}}__elem_index_by(
         ArrayC_{{typename}} xs,
         {{type}} y,
-        bool ( * f )( {{type}} x, {{type}} y ) );
+        bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
 size_t
 arrayc_{{funcname}}__elem_count_by(
         ArrayC_{{typename}} xs,
         {{type}} y,
-        bool ( * f )( {{type}} x, {{type}} y ) );
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+
+
+ArrayM_{{typename}}
+arrayc_{{funcname}}__replaced_by(
+        ArrayC_{{typename}} xs,
+        {{type}} element,
+        {{type}} replacement,
+        bool ( * eq )( {{type}} x, {{type}} el ) );
 
 
 
@@ -461,6 +476,11 @@ arraym_{{funcname}}__new_alloc(
 ArrayM_{{typename}}
 arraym_{{funcname}}__copy(
         ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arrayc(
+        ArrayC_{{typename}} );
 
 
 void
@@ -800,6 +820,20 @@ arraym_{{funcname}}__pick(
         bool ( * f )( {{type}} const * pick, {{type}} x ) );
 
 
+void
+arraym_{{funcname}}__replacef(
+        ArrayM_{{typename}},
+        bool ( * f )( {{type}} x ),
+        {{type}} replacement );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__replacedf(
+        ArrayM_{{typename}} xs,
+        bool ( * f )( {{type}} x ),
+        {{type}} replacement );
+
+
 struct arraym_{{funcname}}__each__options {
     void ( * f )( {{type}} );
     bool ( * b )( {{type}} );
@@ -871,6 +905,21 @@ arraym_{{funcname}}__elem_count_by(
         bool ( * f )( {{type}} x, {{type}} y ) );
 
 
+void
+arraym_{{funcname}}__replace_by(
+        ArrayM_{{typename}} xs,
+        {{type}} element,
+        {{type}} replacement,
+        bool ( * eq )( {{type}} x, {{type}} el ) );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__replaced_by(
+        ArrayM_{{typename}} xs,
+        {{type}} element,
+        {{type}} replacement,
+        bool ( * eq )( {{type}} x, {{type}} el ) );
+
 
 
 {% macro typeclass_header(name) -%}
@@ -929,6 +978,13 @@ arrayc_{{funcname}}__elem_count(
         {{type}} );
 
 
+ArrayM_{{typename}}
+arrayc_{{funcname}}__replaced(
+        ArrayC_{{typename}},
+        {{type}} element,
+        {{type}} replacement );
+
+
 
 // ARRAYM:
 
@@ -967,6 +1023,20 @@ size_t
 arraym_{{funcname}}__elem_count(
         ArrayM_{{typename}},
         {{type}} );
+
+
+void
+arraym_{{funcname}}__replace(
+        ArrayM_{{typename}},
+        {{type}} element,
+        {{type}} replacement );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__replaced(
+        ArrayM_{{typename}},
+        {{type}} element,
+        {{type}} replacement );
 
 
 {% endcall %}

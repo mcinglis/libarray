@@ -825,6 +825,24 @@ arrayc_{{funcname}}__pick(
 }
 
 
+ArrayM_{{typename}}
+arrayc_{{funcname}}__replacedf(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} x ),
+        {{type}} const repl )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    int const saved_errno = errno;
+    errno = 0;
+    ArrayM_{{typename}} const new = arraym_{{funcname}}__copy_arrayc( xs );
+    if ( errno ) { return ( ArrayM_{{typename}} ){ 0 }; }
+    arraym_{{funcname}}__replacef( new, f, repl );
+    if ( !errno ) { errno = saved_errno; }
+    return new;
+}
+
+
 bool
 arrayc_{{funcname}}__each_(
         ArrayC_{{typename}} const xs,
@@ -855,9 +873,9 @@ bool
 arrayc_{{funcname}}__equal_by(
         ArrayC_{{typename}} const xs,
         ArrayC_{{typename}} const ys,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
 
     if ( xs.length != ys.length ) {
         return false;
@@ -866,7 +884,7 @@ arrayc_{{funcname}}__equal_by(
         return true;
     }
     for ( size_t i = 0; i < xs.length; i++ ) {
-        if ( !f( xs.e[ i ], ys.e[ i ] ) ) {
+        if ( !eq( xs.e[ i ], ys.e[ i ] ) ) {
             return false;
         }
     }
@@ -878,11 +896,11 @@ bool
 arrayc_{{funcname}}__elem_by(
         ArrayC_{{typename}} const xs,
         {{type}} const y,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
 
-    return arrayc_{{funcname}}__elem_ptr_by( xs, y, f ) != NULL;
+    return arrayc_{{funcname}}__elem_ptr_by( xs, y, eq ) != NULL;
 }
 
 
@@ -890,11 +908,11 @@ arrayc_{{funcname}}__elem_by(
 arrayc_{{funcname}}__elem_ptr_by(
         ArrayC_{{typename}} const xs,
         {{type}} const y,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
 
-    Maybe_size const mi = arrayc_{{funcname}}__elem_index_by( xs, y, f );
+    Maybe_size const mi = arrayc_{{funcname}}__elem_index_by( xs, y, eq );
     return mi.nothing ? NULL : ( xs.e + mi.value );
 }
 
@@ -903,12 +921,12 @@ Maybe_size
 arrayc_{{funcname}}__elem_index_by(
         ArrayC_{{typename}} const xs,
         {{type}} const y,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
 
     for ( size_t i = 0; i < xs.length; i++ ) {
-        if ( f( xs.e[ i ], y ) ) {
+        if ( eq( xs.e[ i ], y ) ) {
             return ( Maybe_size ){ .value = i };
         }
     }
@@ -920,17 +938,36 @@ size_t
 arrayc_{{funcname}}__elem_count_by(
         ArrayC_{{typename}} const xs,
         {{type}} const y,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
 
     size_t count = 0;
     for ( size_t i = 0; i < xs.length; i++ ) {
-        if ( f( xs.e[ i ], y ) ) {
+        if ( eq( xs.e[ i ], y ) ) {
             count++;
         }
     }
     return count;
+}
+
+
+ArrayM_{{typename}}
+arrayc_{{funcname}}__replaced_by(
+        ArrayC_{{typename}} const xs,
+        {{type}} const el,
+        {{type}} const repl,
+        bool ( * const eq )( {{type}} x, {{type}} el ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    int const saved_errno = errno;
+    errno = 0;
+    ArrayM_{{typename}} const new = arraym_{{funcname}}__copy_arrayc( xs );
+    if ( errno ) { return ( ArrayM_{{typename}} ){ 0 }; }
+    arraym_{{funcname}}__replace_by( new, el, repl, eq );
+    if ( !errno ) { errno = saved_errno; }
+    return new;
 }
 
 
@@ -992,6 +1029,16 @@ arraym_{{funcname}}__copy(
     ASSERT( arraym_{{funcname}}__is_valid( from ) );
 
     return arraym_{{funcname}}__new( from.e, from.length );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arrayc(
+        ArrayC_{{typename}} const from )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( from ) );
+
+    return arrayc_{{funcname}}__to_arraym( from );
 }
 
 
@@ -1680,6 +1727,36 @@ arraym_{{funcname}}__pick(
 }
 
 
+void
+arraym_{{funcname}}__replacef(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} x ),
+        {{type}} const repl )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const x = xs.e + i;
+        if ( f( *x ) == true ) {
+            *x = repl;
+        }
+    }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__replacedf(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} x ),
+        {{type}} const repl )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    return arrayc_{{funcname}}__replacedf(
+               arrayc_{{funcname}}__view_arraym( xs ), f, repl );
+}
+
+
 bool
 arraym_{{funcname}}__each_(
         ArrayM_{{typename}} const xs,
@@ -1722,16 +1799,16 @@ bool
 arraym_{{funcname}}__equal_by(
         ArrayM_{{typename}} const xs,
         ArrayM_{{typename}} const ys,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
     ASSERT( arraym_{{funcname}}__is_valid( xs ),
             arraym_{{funcname}}__is_valid( ys ),
-            f != NULL );
+            eq != NULL );
 
     return arrayc_{{funcname}}__equal_by(
                arrayc_{{funcname}}__view_arraym( xs ),
                arrayc_{{funcname}}__view_arraym( ys ),
-               f );
+               eq );
 }
 
 
@@ -1739,12 +1816,12 @@ bool
 arraym_{{funcname}}__elem_by(
         ArrayM_{{typename}} const xs,
         {{type}} const y,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
 
     return arrayc_{{funcname}}__elem_by(
-               arrayc_{{funcname}}__view_arraym( xs ), y, f );
+               arrayc_{{funcname}}__view_arraym( xs ), y, eq );
 }
 
 
@@ -1752,11 +1829,11 @@ arraym_{{funcname}}__elem_by(
 arraym_{{funcname}}__elem_ptr_by(
         ArrayM_{{typename}} const xs,
         {{type}} const y,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
 
-    Maybe_size const mi = arraym_{{funcname}}__elem_index_by( xs, y, f );
+    Maybe_size const mi = arraym_{{funcname}}__elem_index_by( xs, y, eq );
     return ( mi.nothing ) ? NULL : ( xs.e + mi.value );
 }
 
@@ -1765,12 +1842,12 @@ Maybe_size
 arraym_{{funcname}}__elem_index_by(
         ArrayM_{{typename}} const xs,
         {{type}} const y,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
 
     return arrayc_{{funcname}}__elem_index_by(
-               arrayc_{{funcname}}__view_arraym( xs ), y, f );
+               arrayc_{{funcname}}__view_arraym( xs ), y, eq );
 }
 
 
@@ -1778,12 +1855,45 @@ size_t
 arraym_{{funcname}}__elem_count_by(
         ArrayM_{{typename}} const xs,
         {{type}} const y,
-        bool ( * const f )( {{type}} x, {{type}} y ) )
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
 
     return arrayc_{{funcname}}__elem_count_by(
-               arrayc_{{funcname}}__view_arraym( xs ), y, f );
+               arrayc_{{funcname}}__view_arraym( xs ), y, eq );
+}
+
+
+void
+arraym_{{funcname}}__replace_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const el,
+        {{type}} const repl,
+        bool ( * const eq )( {{type}} x, {{type}} el ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const x = xs.e + i;
+        if ( eq( *x, el ) == true ) {
+            *x = repl;
+        }
+    }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__replaced_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const el,
+        {{type}} const repl,
+        bool ( * const eq )( {{type}} x, {{type}} el ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    return arrayc_{{funcname}}__replaced_by(
+               arrayc_{{funcname}}__view_arraym( xs ),
+               el, repl, eq );
 }
 
 
@@ -1866,6 +1976,19 @@ arrayc_{{funcname}}__elem_count(
 }
 
 
+ArrayM_{{typename}}
+arrayc_{{funcname}}__replaced(
+        ArrayC_{{typename}} const xs,
+        {{type}} const el,
+        {{type}} const repl )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__replaced_by( xs, el, repl,
+                                             {{funcname}}__equal );
+}
+
+
 
 // ARRAYM:
 
@@ -1921,6 +2044,31 @@ arraym_{{funcname}}__elem_count(
         {{type}} const x )
 {
     return arraym_{{funcname}}__elem_count_by( xs, x, {{funcname}}__equal );
+}
+
+
+void
+arraym_{{funcname}}__replace(
+        ArrayM_{{typename}} const xs,
+        {{type}} const el,
+        {{type}} const repl )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    arraym_{{funcname}}__replace_by( xs, el, repl, {{funcname}}__equal );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__replaced(
+        ArrayM_{{typename}} const xs,
+        {{type}} const el,
+        {{type}} const repl )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__replaced_by( xs, el, repl,
+                                             {{funcname}}__equal );
 }
 
 
