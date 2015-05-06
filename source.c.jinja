@@ -554,12 +554,58 @@ arrayc_{{funcname}}__drop_end_2(
 }
 
 
+void
+arrayc_{{funcname}}__take_ptr(
+        ArrayC_{{typename}} * const xs,
+        size_t const n )
+{
+    ASSERT( xs != NULL, arrayc_{{funcname}}__is_valid( *xs ) );
+
+    *xs = arrayc_{{funcname}}__take( *xs, n );
+}
+
+
+void
+arrayc_{{funcname}}__drop_ptr(
+        ArrayC_{{typename}} * const xs,
+        size_t const n )
+{
+    ASSERT( xs != NULL, arrayc_{{funcname}}__is_valid( *xs ) );
+
+    *xs = arrayc_{{funcname}}__drop( *xs, n );
+}
+
+
+void
+arrayc_{{funcname}}__take_end_ptr(
+        ArrayC_{{typename}} * const xs,
+        size_t const n )
+{
+    ASSERT( xs != NULL, arrayc_{{funcname}}__is_valid( *xs ) );
+
+    *xs = arrayc_{{funcname}}__take_end( *xs, n );
+}
+
+
+void
+arrayc_{{funcname}}__drop_end_ptr(
+        ArrayC_{{typename}} * const xs,
+        size_t const n )
+{
+    ASSERT( xs != NULL, arrayc_{{funcname}}__is_valid( *xs ) );
+
+    *xs = arrayc_{{funcname}}__drop_end( *xs, n );
+}
+
+
 ArrayC_{{typename}}
 arrayc_{{funcname}}__section(
         ArrayC_{{typename}} const xs,
         size_t const start,
         size_t const stop )
 {
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
     return arrayc_{{funcname}}__drop(
                arrayc_{{funcname}}__take( xs, stop ),
                start );
@@ -1468,6 +1514,50 @@ arraym_{{funcname}}__drop_end_2(
         ArrayM_{{typename}} const xs )
 {
     return arraym_{{funcname}}__drop_end( xs, 2 );
+}
+
+
+void
+arraym_{{funcname}}__take_ptr(
+        ArrayM_{{typename}} * const xs,
+        size_t const n )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    *xs = arraym_{{funcname}}__take( *xs, n );
+}
+
+
+void
+arraym_{{funcname}}__drop_ptr(
+        ArrayM_{{typename}} * const xs,
+        size_t const n )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    *xs = arraym_{{funcname}}__drop( *xs, n );
+}
+
+
+void
+arraym_{{funcname}}__take_end_ptr(
+        ArrayM_{{typename}} * const xs,
+        size_t const n )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    *xs = arraym_{{funcname}}__take_end( *xs, n );
+}
+
+
+void
+arraym_{{funcname}}__drop_end_ptr(
+        ArrayM_{{typename}} * const xs,
+        size_t const n )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    *xs = arraym_{{funcname}}__drop_end( *xs, n );
 }
 
 

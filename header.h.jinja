@@ -249,6 +249,30 @@ arrayc_{{funcname}}__drop_end_2(
         ArrayC_{{typename}} );
 
 
+void
+arrayc_{{funcname}}__take_ptr(
+        ArrayC_{{typename}} *,
+        size_t n );
+
+
+void
+arrayc_{{funcname}}__drop_ptr(
+        ArrayC_{{typename}} *,
+        size_t n );
+
+
+void
+arrayc_{{funcname}}__take_end_ptr(
+        ArrayC_{{typename}} *,
+        size_t n );
+
+
+void
+arrayc_{{funcname}}__drop_end_ptr(
+        ArrayC_{{typename}} *,
+        size_t n );
+
+
 ArrayC_{{typename}}
 arrayc_{{funcname}}__section(
         ArrayC_{{typename}},
@@ -690,6 +714,30 @@ arraym_{{funcname}}__drop_end_1(
 ArrayM_{{typename}}
 arraym_{{funcname}}__drop_end_2(
         ArrayM_{{typename}} );
+
+
+void
+arraym_{{funcname}}__take_ptr(
+        ArrayM_{{typename}} *,
+        size_t n );
+
+
+void
+arraym_{{funcname}}__drop_ptr(
+        ArrayM_{{typename}} *,
+        size_t n );
+
+
+void
+arraym_{{funcname}}__take_end_ptr(
+        ArrayM_{{typename}} *,
+        size_t n );
+
+
+void
+arraym_{{funcname}}__drop_end_ptr(
+        ArrayM_{{typename}} *,
+        size_t n );
 
 
 ArrayM_{{typename}}
