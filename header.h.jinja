@@ -71,6 +71,14 @@ arrayc_{{funcname}}__into_arraym(
         ArrayM_{{typename}} to );
 
 
+void
+arrayc_{{funcname}}__into_arraym_with(
+        ArrayC_{{typename}} from,
+        ArrayM_{{typename}} to,
+        void ( * copier )( {{type}} from, {{type}} * to ),
+        void ( * freer )( {{type}} * unused_to ) );
+
+
 {{type}} const *
 arrayc_{{funcname}}__elements(
         ArrayC_{{typename}} );
@@ -521,6 +529,14 @@ void
 arraym_{{funcname}}__into_arraym(
         ArrayM_{{typename}} from,
         ArrayM_{{typename}} to );
+
+
+void
+arraym_{{funcname}}__into_arraym_with(
+        ArrayM_{{typename}} from,
+        ArrayM_{{typename}} to,
+        void ( * copier )( {{type}} from, {{type}} * to ),
+        void ( * freer )( {{type}} * unused_to ) );
 
 
 void

@@ -169,9 +169,33 @@ arrayc_{{funcname}}__into_arraym(
     ASSERT( arrayc_{{funcname}}__is_valid( from ),
             arraym_{{funcname}}__is_valid( to ) );
 
-    for ( size_t i = 0; i < MIN( from.length, to.length ); i++ ) {
-        to.e[ i ] = from.e[ i ];
+    arrayc_{{funcname}}__into_arraym_with( from, to, NULL, NULL );
+}
+
+
+void
+arrayc_{{funcname}}__into_arraym_with(
+        ArrayC_{{typename}} const from,
+        ArrayM_{{typename}} const to,
+        void ( * const copier )( {{type}} from, {{type}} * to ),
+        void ( * const freer )( {{type}} * unused_to ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( from ),
+            arraym_{{funcname}}__is_valid( to ) );
+
+    size_t i = 0;
+    for ( ; i < MIN( from.length, to.length ); i++ ) {
+        {{type}} const from_el = arrayc_{{funcname}}__get( from, i );
+        {{type}} * const to_ptr = arraym_{{funcname}}__getp( to, i );
+        if ( copier == NULL ) {
+            *to_ptr = from_el;
+        } else {
+            copier( from_el, to_ptr );
+            if ( errno ) { break; }
+        }
     }
+    arraym_{{funcname}}__eachp( arraym_{{funcname}}__dropped( to, i ),
+                                .f = freer );
 }
 
 
@@ -1125,6 +1149,21 @@ arraym_{{funcname}}__into_arraym(
 
     arrayc_{{funcname}}__into_arraym(
         arrayc_{{funcname}}__view_arraym( from ), to );
+}
+
+
+void
+arraym_{{funcname}}__into_arraym_with(
+        ArrayM_{{typename}} const from,
+        ArrayM_{{typename}} const to,
+        void ( * const copier )( {{type}} from, {{type}} * to ),
+        void ( * const freer )( {{type}} * unused_to ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( from ),
+            arraym_{{funcname}}__is_valid( to ) );
+
+    arrayc_{{funcname}}__into_arraym_with(
+        arrayc_{{funcname}}__view_arraym( from ), to, copier, freer );
 }
 
 
