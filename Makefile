@@ -15,14 +15,14 @@ CFLAGS ?= -std=c11 -g \
           -Wcomments -Wformat=2 -Wlogical-op -Wmissing-include-dirs \
           -Wnested-externs -Wold-style-definition -Wredundant-decls \
           -Wshadow -Wstrict-prototypes -Wunused-macros -Wvla -Wwrite-strings \
-          -Wno-override-init -Wno-unused-parameter
+          -Wno-override-init -Wno-type-limits -Wno-unused-parameter
 
 TPLRENDER ?= $(DEPS_DIR)/tplrender/tplrender
 
 
-test_libarray_types := short uintmax ptrm-int
-test_libbase_types  := $(test_libarray_types) size
-test_libmaybe_types := size
+libarray_types := short uintmax ptrm-int
+libbase_types  := $(libarray_types) size
+libmaybe_types := $(libarray_types) size
 
 short_type       := short
 short_options    := --typeclasses BOUNDED EQ ORD ENUM NUM \
@@ -39,32 +39,39 @@ size_type        := size_t
 size_options     := --typeclasses BOUNDED EQ ORD ENUM NUM \
                     --extra num_type=unsigned
 
-test_libbase_sources := $(foreach t,$(test_libbase_types),$(LIBBASE)/$t.c)
-test_libbase_headers := $(test_libbase_sources:.c=.h)
-test_libbase_objects := $(test_libbase_sources:.c=.o)
+libbase_sources := $(foreach t,$(libbase_types),$(LIBBASE)/$t.c)
+libbase_headers := $(libbase_sources:.c=.h)
+libbase_objects := $(libbase_sources:.c=.o)
 
-test_libmaybe_defs := $(foreach t,$(test_libmaybe_types),$(LIBMAYBE)/def/maybe-$t.h)
+libmaybe_sources := $(foreach t,$(libmaybe_types),$(LIBMAYBE)/maybe-$t.c)
+libmaybe_headers := $(libmaybe_sources:.c=.h)
+libmaybe_defs    := $(foreach t,$(libmaybe_types),$(LIBMAYBE)/def/maybe-$t.h)
+libmaybe_objects := $(libmaybe_sources:.c=.o)
 
-test_libarray_sources := $(foreach t,$(test_libarray_types),array-$t.c)
-test_libarray_headers := $(test_libarray_sources:.c=.h)
-test_libarray_defs    := $(addprefix def/,$(test_libarray_headers))
-test_libarray_objects := $(test_libarray_sources:.c=.o)
+libarray_sources := $(foreach t,$(libarray_types),array-$t.c)
+libarray_headers := $(libarray_sources:.c=.h)
+libarray_defs    := $(addprefix def/,$(libarray_headers))
+libarray_objects := $(libarray_sources:.c=.o)
 
-test_gen_objects := $(test_libbase_objects) \
-                    $(test_libarray_objects)
+gen_objects := \
+    $(libbase_objects) \
+    $(libmaybe_objects) \
+    $(libarray_objects)
 
-test_gen := $(test_libbase_sources) \
-            $(test_libbase_headers) \
-            $(test_libmaybe_defs) \
-            $(test_libarray_sources) \
-            $(test_libarray_headers) \
-            $(test_libarray_defs) \
-            $(test_libarray_objects) \
-            $(test_gen_objects)
+gen := \
+    $(libbase_sources) \
+    $(libbase_headers) \
+    $(libmaybe_defs) \
+    $(libmaybe_sources) \
+    $(libmaybe_headers) \
+    $(libarray_defs) \
+    $(libarray_sources) \
+    $(libarray_headers) \
+    $(gen_objects)
 
 test_binaries := $(basename $(wildcard tests/*.c))
 
-mkdeps := $(test_gen_objects:.o=.dep.mk)
+mkdeps := $(gen_objects:.o=.dep.mk)
 
 
 
@@ -84,44 +91,64 @@ test: tests
 
 .PHONY: clean
 clean:
-	rm -rf $(test_gen) $(test_binaries) $(mkdeps)
+	rm -rf $(gen) $(test_binaries) $(mkdeps)
 
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MF "$(@:.o=.dep.mk)" -c $< -o $@
 
 
-tests/test: $(test_gen_objects)
+tests/test: $(gen_objects)
 
 name_from_path = $(subst -,_,$1)
 
-$(test_libbase_headers): $(LIBBASE)/%.h: $(LIBBASE)/header.h.jinja
+$(libbase_headers): $(LIBBASE)/%.h: $(LIBBASE)/header.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(test_libbase_sources): $(LIBBASE)/%.c: $(LIBBASE)/source.c.jinja
+$(libbase_sources): $(LIBBASE)/%.c: $(LIBBASE)/source.c.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(test_libbase_objects): $(LIBBASE)/%.o: $(LIBBASE)/%.h
+$(libbase_objects): $(LIBBASE)/%.o: $(LIBBASE)/%.h
 
-$(test_libmaybe_defs): $(LIBMAYBE)/def/maybe-%.h: $(LIBMAYBE)/def.h.jinja
+$(libmaybe_defs): $(LIBMAYBE)/def/maybe-%.h: $(LIBMAYBE)/def.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(test_libarray_defs): def/array-%.h: def.h.jinja
+$(libmaybe_headers): $(LIBMAYBE)/maybe-%.h: $(LIBMAYBE)/header.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(test_libarray_headers): array-%.h: header.h.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
-
-$(test_libarray_sources): array-%.c: source.c.jinja
+$(libmaybe_sources): $(LIBMAYBE)/maybe-%.c: $(LIBMAYBE)/source.c.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) --sys-headers "libbase/$*.h" -o $@
 
-$(test_libarray_objects): array-%.o: array-%.h def/array-%.h $(LIBBASE)/%.h $(LIBBASE)/size.h $(LIBMAYBE)/def/maybe-size.h
+$(libmaybe_objects): $(LIBMAYBE)/maybe-%.o: \
+    $(LIBMAYBE)/def/maybe-%.h \
+    $(LIBMAYBE)/maybe-%.h \
+    $(LIBBASE)/%.h
+
+$(libarray_defs): def/array-%.h: def.h.jinja
+	$(eval n := $(call name_from_path,$*))
+	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
+
+$(libarray_headers): array-%.h: header.h.jinja
+	$(eval n := $(call name_from_path,$*))
+	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
+
+$(libarray_sources): array-%.c: source.c.jinja
+	$(eval n := $(call name_from_path,$*))
+	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) --sys-headers "libbase/$*.h" -o $@
+
+$(libarray_objects): array-%.o: \
+    array-%.h \
+    def/array-%.h \
+    $(LIBBASE)/%.h \
+    $(LIBBASE)/size.h \
+    $(LIBMAYBE)/def/maybe-size.h \
+    $(LIBMAYBE)/def/maybe-%.h \
+    $(LIBMAYBE)/maybe-%.h
 
 
 -include $(mkdeps)

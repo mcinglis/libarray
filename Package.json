@@ -12,7 +12,8 @@
         },
         { "repo": [ "https://bitbucket.org/mcinglis/libmaybe.git",
                     "https://github.com/mcinglis/libmaybe.git",
-                    "https://gitorious.org/mcinglis/libmaybe.git" ]
+                    "https://gitorious.org/mcinglis/libmaybe.git" ],
+          "tag":  "v0.4.*"
         },
         { "dev": true,
           "repo": [ "https://bitbucket.org/mcinglis/tplrender.git",
