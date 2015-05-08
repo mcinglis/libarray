@@ -58,6 +58,10 @@ reallocn( void * const ptr,
         errno = ENOMEM;
         return NULL;
     }
+    size_t const new_size = n * size;
+    if ( new_size == 0 && ptr == NULL ) {
+        return NULL;
+    }
     return realloc( ptr, n * size );
 }
 
@@ -191,7 +195,7 @@ arrayc_{{funcname}}__into_arraym_with(
             *to_ptr = from_el;
         } else {
             copier( from_el, to_ptr );
-            if ( errno ) { break; }
+            if ( errno ) { return; }
         }
     }
     arraym_{{funcname}}__eachp( arraym_{{funcname}}__dropped( to, i ),
@@ -1107,14 +1111,9 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__new_alloc(
         size_t const length )
 {
-    errno = 0;
-    {{type}} * const e = ( length == 0 )
-                             ? NULL
-                             : reallocn( NULL, length, sizeof ( {{type}} ) );
-    if ( errno ) {
-        return ( ArrayM_{{typename}} ){ 0 };
-    }
-    return ( ArrayM_{{typename}} ){ .e = e, .length = length };
+    ArrayM_{{typename}} xs = { 0 };
+    arraym_{{funcname}}__realloc( &xs, length );
+    return xs;
 }
 
 
@@ -1168,19 +1167,6 @@ arraym_{{funcname}}__into_arraym_with(
 
 
 void
-arraym_{{funcname}}__realloc(
-        ArrayM_{{typename}} * const xs,
-        size_t const new_length )
-{
-    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
-
-    {{type}} * const new = reallocn( xs->e, new_length, sizeof ( {{type}} ) );
-    if ( errno ) { return; }
-    *xs = ( ArrayM_{{typename}} ){ .e = new, .length = new_length };
-}
-
-
-void
 arraym_{{funcname}}__free(
         ArrayM_{{typename}} * const xs )
 {
@@ -1199,6 +1185,23 @@ arraym_{{funcname}}__freev(
 
     if ( xs.e != NULL ) {
         free( xs.e );
+    }
+}
+
+
+void
+arraym_{{funcname}}__realloc(
+        ArrayM_{{typename}} * const xs,
+        size_t const new_length )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    if ( new_length != xs->length ) {
+        errno = 0;
+        {{type}} * const new_e = reallocn( xs->e, new_length,
+                                           sizeof ( {{type}} ) );
+        if ( errno ) { return; }
+        *xs = ( ArrayM_{{typename}} ){ .e = new_e, .length = new_length };
     }
 }
 
