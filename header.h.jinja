@@ -182,125 +182,63 @@ arrayc_{{funcname}}__count_last(
 
 
 ArrayC_{{typename}}
-arrayc_{{funcname}}__taken(
-        ArrayC_{{typename}},
-        size_t n );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__dropped(
-        ArrayC_{{typename}},
-        size_t n );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__taken_end(
-        ArrayC_{{typename}},
-        size_t n );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__dropped_end(
-        ArrayC_{{typename}},
-        size_t n );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__taken_while(
-        ArrayC_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__taken_end_while(
-        ArrayC_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__dropped_while(
-        ArrayC_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__dropped_end_while(
-        ArrayC_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__sliced(
-        ArrayC_{{typename}},
-        size_t start,
-        size_t stop );
-
-
-ArrayC_{{typename}}
-arrayc_{{funcname}}__sliced_s(
-        ArrayC_{{typename}},
-        intmax_t start,
-        intmax_t stop );
-
-
-void
 arrayc_{{funcname}}__take(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         size_t n );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__drop(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         size_t n );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__take_end(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         size_t n );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__drop_end(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         size_t n );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__take_while(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__take_end_while(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__drop_while(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__drop_end_while(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__slice(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         size_t start,
         size_t stop );
 
 
-void
+ArrayC_{{typename}}
 arrayc_{{funcname}}__slice_s(
-        ArrayC_{{typename}} *,
+        ArrayC_{{typename}},
         intmax_t start,
         intmax_t stop );
 
@@ -454,24 +392,6 @@ arrayc_{{funcname}}__elem_count_by(
         bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
-struct arrayc_{{funcname}}__each__options {
-    void ( * f )( {{type}} );
-    bool ( * b )( {{type}} );
-    void ( * e )( {{type}} );
-    bool ( * where )( {{type}} );
-    bool ( * where_not )( {{type}} );
-};
-
-bool
-arrayc_{{funcname}}__each_(
-        ArrayC_{{typename}},
-        struct arrayc_{{funcname}}__each__options );
-
-#define arrayc_{{funcname}}__each( XS, ... ) \
-    arrayc_{{funcname}}__each_( XS, \
-        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
-
-
 ArrayM_{{typename}}
 arrayc_{{funcname}}__replacedf(
         ArrayC_{{typename}} xs,
@@ -485,6 +405,54 @@ arrayc_{{funcname}}__replaced_by(
         {{type}} element,
         {{type}} replacement,
         bool ( * eq )( {{type}} x, {{type}} el ) );
+
+
+struct arrayc_{{funcname}}__each__options {
+    void ( * f )( {{type}} );
+    bool ( * b )( {{type}} );
+    void ( * fi )( size_t index, {{type}} );
+    bool ( * bi )( size_t index, {{type}} );
+    void ( * fv )( void const * v, {{type}} );
+    bool ( * bv )( void const * v, {{type}} );
+    void ( * fvi )( void const * v, size_t index, {{type}} );
+    bool ( * bvi )( void const * v, size_t index, {{type}} );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+    void const * v;
+};
+
+bool
+arrayc_{{funcname}}__each_(
+        ArrayC_{{typename}},
+        struct arrayc_{{funcname}}__each__options );
+
+#define arrayc_{{funcname}}__each( XS, ... ) \
+    arrayc_{{funcname}}__each_( XS, \
+        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
+
+
+struct arrayc_{{funcname}}__eachp__options {
+    void ( * f )( {{type}} const * );
+    bool ( * b )( {{type}} const * );
+    void ( * fi )( size_t index, {{type}} const * );
+    bool ( * bi )( size_t index, {{type}} const * );
+    void ( * fv )( void const * v, {{type}} const * );
+    bool ( * bv )( void const * v, {{type}} const * );
+    void ( * fvi )( void const * v, size_t index, {{type}} const * );
+    bool ( * bvi )( void const * v, size_t index, {{type}} const * );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+    void const * v;
+};
+
+bool
+arrayc_{{funcname}}__eachp_(
+        ArrayC_{{typename}},
+        struct arrayc_{{funcname}}__eachp__options );
+
+#define arrayc_{{funcname}}__eachp( XS, ... ) \
+    arrayc_{{funcname}}__eachp_( XS, \
+        ( struct arrayc_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
 
 
 
@@ -542,11 +510,6 @@ arraym_{{funcname}}__into_arraym_with(
 void
 arraym_{{funcname}}__free(
         ArrayM_{{typename}} * xs );
-
-
-void
-arraym_{{funcname}}__freev(
-        ArrayM_{{typename}} );
 
 
 void
@@ -678,125 +641,63 @@ arraym_{{funcname}}__count_last(
 
 
 ArrayM_{{typename}}
-arraym_{{funcname}}__taken(
-        ArrayM_{{typename}},
-        size_t n );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__dropped(
-        ArrayM_{{typename}},
-        size_t n );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__taken_end(
-        ArrayM_{{typename}},
-        size_t n );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__dropped_end(
-        ArrayM_{{typename}},
-        size_t n );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__taken_while(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__taken_end_while(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__dropped_while(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__dropped_end_while(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__sliced(
-        ArrayM_{{typename}},
-        size_t start,
-        size_t stop );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__sliced_s(
-        ArrayM_{{typename}},
-        intmax_t start,
-        intmax_t stop );
-
-
-void
 arraym_{{funcname}}__take(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         size_t n );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__drop(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         size_t n );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__take_end(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         size_t n );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__drop_end(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         size_t n );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__take_while(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__take_end_while(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__drop_while(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__drop_end_while(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__slice(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         size_t start,
         size_t stop );
 
 
-void
+ArrayM_{{typename}}
 arraym_{{funcname}}__slice_s(
-        ArrayM_{{typename}} *,
+        ArrayM_{{typename}},
         intmax_t start,
         intmax_t stop );
 
@@ -950,42 +851,6 @@ arraym_{{funcname}}__elem_count_by(
         bool ( * f )( {{type}} x, {{type}} y ) );
 
 
-struct arraym_{{funcname}}__each__options {
-    void ( * f )( {{type}} );
-    bool ( * b )( {{type}} );
-    void ( * e )( {{type}} );
-    bool ( * where )( {{type}} );
-    bool ( * where_not )( {{type}} );
-};
-
-bool
-arraym_{{funcname}}__each_(
-        ArrayM_{{typename}},
-        struct arraym_{{funcname}}__each__options );
-
-#define arraym_{{funcname}}__each( XS, ... ) \
-    arraym_{{funcname}}__each_( XS, \
-        ( struct arraym_{{funcname}}__each__options ){ __VA_ARGS__ } )
-
-
-struct arraym_{{funcname}}__eachp__options {
-    void ( * f )( {{type}} * );
-    bool ( * b )( {{type}} * );
-    void ( * e )( {{type}} * );
-    bool ( * where )( {{type}} );
-    bool ( * where_not )( {{type}} );
-};
-
-bool
-arraym_{{funcname}}__eachp_(
-        ArrayM_{{typename}},
-        struct arraym_{{funcname}}__eachp__options );
-
-#define arraym_{{funcname}}__eachp( XS, ... ) \
-    arraym_{{funcname}}__eachp_( XS, \
-        ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
-
-
 void
 arraym_{{funcname}}__replacef(
         ArrayM_{{typename}},
@@ -1014,6 +879,40 @@ arraym_{{funcname}}__replaced_by(
         {{type}} element,
         {{type}} replacement,
         bool ( * eq )( {{type}} x, {{type}} el ) );
+
+
+bool
+arraym_{{funcname}}__each_(
+        ArrayM_{{typename}},
+        struct arrayc_{{funcname}}__each__options );
+
+#define arraym_{{funcname}}__each( XS, ... ) \
+    arraym_{{funcname}}__each_( XS, \
+        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
+
+
+struct arraym_{{funcname}}__eachp__options {
+    void ( * f )( {{type}} * );
+    bool ( * b )( {{type}} * );
+    void ( * fi )( size_t index, {{type}} * );
+    bool ( * bi )( size_t index, {{type}} * );
+    void ( * fv )( void const * v, {{type}} * );
+    bool ( * bv )( void const * v, {{type}} * );
+    void ( * fvi )( void const * v, size_t index, {{type}} * );
+    bool ( * bvi )( void const * v, size_t index, {{type}} * );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+    void const * v;
+};
+
+bool
+arraym_{{funcname}}__eachp_(
+        ArrayM_{{typename}},
+        struct arraym_{{funcname}}__eachp__options );
+
+#define arraym_{{funcname}}__eachp( XS, ... ) \
+    arraym_{{funcname}}__eachp_( XS, \
+        ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
 
 
 

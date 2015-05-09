@@ -58,5 +58,13 @@ typedef struct arraym_{{funcname}} {
       .length = NELEM( ( {{type}}[] ){ __VA_ARGS__ } ) }
 
 
+#define ARRAYC_{{macroname}}( ... ) \
+    ( ArrayC_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ )
+
+
+#define ARRAYM_{{macroname}}( ... ) \
+    ( ArrayM_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ )
+
+
 #endif // ifndef LIBARRAY_DEF_ARRAY_{{macroname}}_H
 

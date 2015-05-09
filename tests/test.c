@@ -52,11 +52,13 @@ static
 void
 test_array_ptrm_int( void )
 {
-    ArrayC_ptrm_int const xs = ARRAY_PTRM_INT( &( int ){ 1 }, &( int ){ 2 },
+    int a = 2;
+    ArrayC_ptrm_int const xs = ARRAY_PTRM_INT( &( int ){ 1 }, &a,
                                                &( int ){ 4 }, &( int ){ 8 } );
-    ArrayC_ptrm_int const ys = ARRAY_PTRM_INT( &( int ){ 1 }, &( int ){ 2 },
+    ArrayC_ptrm_int const ys = ARRAY_PTRM_INT( &( int ){ 1 }, &a,
                                                &( int ){ 4 }, &( int ){ 8 } );
-    ASSERT( xs.length == 4,
+    ASSERT( xs.length == 4, ys.length == 4,
+            xs.e[ 1 ] == &a, ys.e[ 1 ] == &a,
             !arrayc_ptrm_int__equal( xs, ys ),
             arrayc_ptrm_int__equal_by( xs, ys, ptrm_int_equal_val ) );
 }
@@ -66,26 +68,26 @@ static
 void
 test_replace( void )
 {
-    ArrayC_short const xs = ARRAY_SHORT( 3, 4, -8, 4, 4, 5, 4, -1 );
+    ArrayC_short xs = ARRAY_SHORT( 3, 4, -8, 4, 4, 5, 4, -1 );
 
-    ArrayM_short const ys = arrayc_short__replaced( xs, 4, 6 );
+    ArrayM_short ys = arrayc_short__replaced( xs, 4, 6 );
     ASSERT( arraym_short__equal( ys,
-                ( ArrayM_short ) ARRAY_SHORT( 3, 6, -8, 6, 6, 5, 6, -1 ) ) );
+                                 ARRAYM_SHORT( 3, 6, -8, 6, 6, 5, 6, -1 ) ) );
 
     arraym_short__replace( ys, 5, 0 );
     ASSERT( arraym_short__equal( ys,
-                ( ArrayM_short ) ARRAY_SHORT( 3, 6, -8, 6, 6, 0, 6, -1 ) ) );
+                                 ARRAYM_SHORT( 3, 6, -8, 6, 6, 0, 6, -1 ) ) );
 
     arraym_short__replacef( ys, short__is_negative, 7 );
     ASSERT( arraym_short__equal( ys,
-                ( ArrayM_short ) ARRAY_SHORT( 3, 6, 7, 6, 6, 0, 6, 7 ) ) );
+                                 ARRAYM_SHORT( 3, 6, 7, 6, 6, 0, 6, 7 ) ) );
 
-    ArrayM_short const zs = arraym_short__replacedf( ys, short__is_zero, 1 );
+    ArrayM_short zs = arraym_short__replacedf( ys, short__is_zero, 1 );
     ASSERT( arraym_short__equal( zs,
-                ( ArrayM_short ) ARRAY_SHORT( 3, 6, 7, 6, 6, 1, 6, 7 ) ) );
+                                 ARRAYM_SHORT( 3, 6, 7, 6, 6, 1, 6, 7 ) ) );
 
-    arraym_short__freev( ys );
-    arraym_short__freev( zs );
+    arraym_short__free( &ys );
+    arraym_short__free( &zs );
 }
 
 
