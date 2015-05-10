@@ -2123,3 +2123,51 @@ arraym_{{funcname}}__replaced(
 
 {% endcall %}
 
+
+{% call typeclass('FROM_STR') %}
+
+
+#include <string.h>
+
+
+static
+size_t
+strlen_null(
+        {{type}} const * const xs )
+{
+    if ( xs == NULL ) { return 0; }
+    size_t count = 1;
+    while ( !{{funcname}}__equal( xs[ count ], {{funcname}}__zero() ) ) {
+        count++;
+    }
+    return count;
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__view_str(
+        {{type}} const * const xs )
+{
+    return ( ArrayC_{{typename}} ){ .e = xs, .length = strlen_null( xs ) };
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__view_str(
+        {{type}} * const xs )
+{
+    return ( ArrayM_{{typename}} ){ .e = xs, .length = strlen_null( xs ) };
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str(
+        {{type}} const * const xs )
+{
+    return arraym_{{funcname}}__copy_arrayc(
+               arrayc_{{funcname}}__view_str( xs ) );
+}
+
+
+{% endcall %}
+

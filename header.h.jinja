@@ -933,9 +933,6 @@ arraym_{{funcname}}__eachp_(
 {% call typeclass('EQ') %}
 
 
-// ARRAYC:
-
-
 bool
 arrayc_{{funcname}}__equal(
         ArrayC_{{typename}},
@@ -977,10 +974,6 @@ arrayc_{{funcname}}__replaced(
         ArrayC_{{typename}},
         {{type}} element,
         {{type}} replacement );
-
-
-
-// ARRAYM:
 
 
 bool
@@ -1031,6 +1024,31 @@ arraym_{{funcname}}__replaced(
         ArrayM_{{typename}},
         {{type}} element,
         {{type}} replacement );
+
+
+{% endcall %}
+
+
+{% call typeclass('FROM_STR') %}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__view_str(
+        {{type}} const * xs );
+// Returns a constant array representation of the buffer `xs` terminated by
+// `{{funcname}}__zero()`.
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__view_str(
+        {{type}} * xs );
+// Returns a constant array representation of the buffer `xs` terminated by
+// `{{funcname}}__zero()`.
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str(
+        {{type}} const * const xs )
 
 
 {% endcall %}
