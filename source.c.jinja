@@ -203,6 +203,16 @@ arrayc_{{funcname}}__into_arraym_with(
 }
 
 
+ArrayC_{{typename}}
+arrayc_{{funcname}}__id(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return xs;
+}
+
+
 {{type}} const *
 arrayc_{{funcname}}__elements(
         ArrayC_{{typename}} const xs )
@@ -1125,6 +1135,16 @@ arraym_{{funcname}}__realloc(
         if ( errno ) { return; }
         *xs = ( ArrayM_{{typename}} ){ .e = new_e, .length = new_length };
     }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__id(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return xs;
 }
 
 

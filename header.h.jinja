@@ -79,6 +79,11 @@ arrayc_{{funcname}}__into_arraym_with(
         void ( * freer )( {{type}} * unused_to ) );
 
 
+ArrayC_{{typename}}
+arrayc_{{funcname}}__id(
+        ArrayC_{{typename}} );
+
+
 {{type}} const *
 arrayc_{{funcname}}__elements(
         ArrayC_{{typename}} );
@@ -516,6 +521,11 @@ void
 arraym_{{funcname}}__realloc(
         ArrayM_{{typename}} *,
         size_t new_length );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__id(
+        ArrayM_{{typename}} );
 
 
 {{type}} *
