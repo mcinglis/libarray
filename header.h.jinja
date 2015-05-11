@@ -834,6 +834,53 @@ arraym_{{funcname}}__equal_by(
 
 
 bool
+arrayc_{{funcname}}__is_prefix_by(
+        ArrayC_{{typename}} xs,
+        ArrayC_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// Returns the boolean that `ys` is a prefix of `xs` under the equality
+// function of `eq`.
+
+
+bool
+arrayc_{{funcname}}__is_suffix_by(
+        ArrayC_{{typename}} xs,
+        ArrayC_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// Returns the boolean that `ys` is a suffix of `xs` under the equality
+// function of `eq`.
+
+
+bool
+arrayc_{{funcname}}__is_infix_by(
+        ArrayC_{{typename}} xs,
+        ArrayC_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// Returns the boolean that `ys` is contained wholly and intact in `xs` under
+// the equality function of `eq`.
+
+
+Maybe_size
+arrayc_{{funcname}}__infix_index_by(
+        ArrayC_{{typename}} xs,
+        ArrayC_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// If `ys` is contained wholly and intact in `xs` under the equality function
+// of `eq`, then returns the index at which `ys` begins within `xs`. Otherwise,
+// returns nothing.
+
+
+{{type}} const *
+arrayc_{{funcname}}__infix_ptr_by(
+        ArrayC_{{typename}} xs,
+        ArrayC_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// If `ys` is contained wholly and intact in `xs` under the equality function
+// of `eq`, then returns the pointer at which `ys` begins within `xs`.
+// Otherwise, returns `NULL`.
+
+
+bool
 arraym_{{funcname}}__elem_by(
         ArrayM_{{typename}} xs,
         {{type}} y,
@@ -956,6 +1003,36 @@ arrayc_{{funcname}}__not_equal(
 
 
 bool
+arrayc_{{funcname}}__is_prefix(
+        ArrayC_{{typename}},
+        ArrayC_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__is_suffix(
+        ArrayC_{{typename}},
+        ArrayC_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__is_infix(
+        ArrayC_{{typename}},
+        ArrayC_{{typename}} );
+
+
+Maybe_size
+arrayc_{{funcname}}__infix_index(
+        ArrayC_{{typename}},
+        ArrayC_{{typename}} );
+
+
+{{type}} const *
+arrayc_{{funcname}}__infix_ptr(
+        ArrayC_{{typename}},
+        ArrayC_{{typename}} );
+
+
+bool
 arrayc_{{funcname}}__elem(
         ArrayC_{{typename}},
         {{type}} );
@@ -996,6 +1073,36 @@ bool
 arraym_{{funcname}}__not_equal(
         ArrayM_{{typename}},
         ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_prefix(
+        ArrayM_{{typename}},
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_suffix(
+        ArrayM_{{typename}},
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_infix(
+        ArrayM_{{typename}},
+        ArrayM_{{typename}} );
+
+
+Maybe_size
+arraym_{{funcname}}__infix_index(
+        ArrayM_{{typename}},
+        ArrayM_{{typename}} );
+
+
+{{type}} *
+arraym_{{funcname}}__infix_ptr(
+        ArrayM_{{typename}},
+        ArrayC_{{typename}} );
 
 
 bool

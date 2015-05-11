@@ -848,6 +848,85 @@ arrayc_{{funcname}}__equal_by(
 
 
 bool
+arrayc_{{funcname}}__is_prefix_by(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ),
+            eq != NULL );
+
+    return arrayc_{{funcname}}__equal_by(
+               arrayc_{{funcname}}__take( xs, ys.length ), ys, eq );
+}
+
+
+bool
+arrayc_{{funcname}}__is_suffix_by(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ),
+            eq != NULL );
+
+    return arrayc_{{funcname}}__equal_by(
+               arrayc_{{funcname}}__take_end( xs, ys.length ), ys, eq );
+}
+
+
+bool
+arrayc_{{funcname}}__is_infix_by(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ),
+            eq != NULL );
+
+    return !( arrayc_{{funcname}}__infix_index_by( xs, ys, eq ).nothing );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__infix_index_by(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ),
+            eq != NULL );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        ArrayC_{{typename}} const xs_rest = arrayc_{{funcname}}__drop( xs, i );
+        if ( arrayc_{{funcname}}__is_prefix_by( xs_rest, ys, eq ) ) {
+            return ( Maybe_size ){ .value = i };
+        }
+    }
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__infix_ptr_by(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ),
+            eq != NULL );
+
+    Maybe_size const mi = arrayc_{{funcname}}__infix_index_by( xs, ys, eq );
+    return mi.nothing ? NULL : arrayc_{{funcname}}__getp( xs, mi.value );
+}
+
+
+bool
 arrayc_{{funcname}}__elem_by(
         ArrayC_{{typename}} const xs,
         {{type}} const y,
@@ -2004,6 +2083,66 @@ arrayc_{{funcname}}__not_equal(
             arrayc_{{funcname}}__is_valid( ys ) );
 
     return !arrayc_{{funcname}}__equal( xs, ys );
+}
+
+
+bool
+arrayc_{{funcname}}__is_prefix(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ) );
+
+    return arrayc_{{funcname}}__is_prefix_by( xs, ys, equalf );
+}
+
+
+bool
+arrayc_{{funcname}}__is_suffix(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ) );
+
+    return arrayc_{{funcname}}__is_prefix_by( xs, ys, equalf );
+}
+
+
+bool
+arrayc_{{funcname}}__is_infix(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ) );
+
+    return arrayc_{{funcname}}__is_infix_by( xs, ys, equalf );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__infix_index(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ) );
+
+    return arrayc_{{funcname}}__infix_index_by( xs, ys, equalf );
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__infix_ptr(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ) );
+
+    return arrayc_{{funcname}}__infix_ptr_by( xs, ys, equalf );
 }
 
 
