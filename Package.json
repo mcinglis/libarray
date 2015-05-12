@@ -13,16 +13,18 @@
         { "repo": [ "https://bitbucket.org/mcinglis/libmaybe.git",
                     "https://github.com/mcinglis/libmaybe.git",
                     "https://gitorious.org/mcinglis/libmaybe.git" ],
-          "tag":  "v0.4.*"
+          "tag":  "v1.*"
         },
-        { "dev": true,
+        { "dev":  true,
           "repo": [ "https://bitbucket.org/mcinglis/tplrender.git",
-                    "https://github.com/mcinglis/tplrender.git" ]
+                    "https://github.com/mcinglis/tplrender.git" ],
+          "tag":  "v0.1.*"
         },
-        { "dev": true,
+        { "dev":  true,
           "repo": [ "https://bitbucket.org/mcinglis/libbase.git",
                     "https://github.com/mcinglis/libbase.git",
-                    "https://gitorious.org/mcinglis/libbase.git" ]
+                    "https://gitorious.org/mcinglis/libbase.git" ],
+          "tag":  "v1.*"
         }
     ],
     "commands": {

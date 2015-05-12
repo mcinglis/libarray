@@ -43,376 +43,568 @@
 {% endfor %}
 
 
-
-///////////////////////////////////
-/// ARRAYC FUNCTIONS
-///////////////////////////////////
-
-
 bool
-arrayc_{{funcname}}__is_valid(
-        ArrayC_{{typename}} );
+array_{{funcname}}__is_valid(
+        Array_{{typename}} );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__new(
+Array_{{typename}}
+array_{{funcname}}__new(
         {{type}} const * elements,
         size_t length );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__view_arraym(
-        ArrayM_{{typename}} );
+Array_{{typename}}
+array_{{funcname}}__new_view(
+        {{type}} * elements,
+        size_t length );
+
+
+Array_{{typename}}
+array_{{funcname}}__new_alloc(
+        size_t length );
+
+
+Array_{{typename}}
+array_{{funcname}}__new_calloc(
+        size_t length );
+
+
+#define array_{{funcname}}__new_els( ... ) \
+    array_{{funcname}}__copy_array( \
+        ( Array_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ ) )
+
+
+Array_{{typename}}
+array_{{funcname}}__copy_array(
+        Array_{{typename}} );
 
 
 void
-arrayc_{{funcname}}__into_arraym(
-        ArrayC_{{typename}} from,
-        ArrayM_{{typename}} to );
+array_{{funcname}}__free(
+        Array_{{typename}} * xs );
 
 
 void
-arrayc_{{funcname}}__into_arraym_with(
-        ArrayC_{{typename}} from,
-        ArrayM_{{typename}} to,
-        void ( * copier )( {{type}} from, {{type}} * to ),
-        void ( * freer )( {{type}} * unused_to ) );
+array_{{funcname}}__realloc(
+        Array_{{typename}} *,
+        size_t new_length );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__id(
-        ArrayC_{{typename}} );
+void
+array_{{funcname}}__memcpy(
+        Array_{{typename}} to,
+        void const * from,
+        size_t from_size );
+// Copies `n` bytes from `from` to `to`, where `n` is the minimum of the size
+// of `to` and `from_size`.
 
 
-{{type}} const *
-arrayc_{{funcname}}__elements(
-        ArrayC_{{typename}} );
+void
+array_{{funcname}}__memcpy_to(
+        Array_{{typename}} from,
+        void * to,
+        size_t to_size );
+// Copies `n` bytes from `from` to `to`, where `n` is the minimum of the size
+// of `from` and `to_size`.
+
+
+void
+array_{{funcname}}__copy_into_array(
+        Array_{{typename}} from,
+        Array_{{typename}} to );
+// Copies `n` elements from `from` to `to`, where `n` is the minimum of the
+// lengths of `from` and `to`.
+
+
+void
+array_{{funcname}}__copy_into_array_with(
+        Array_{{typename}} from,
+        Array_{{typename}} to,
+        void ( * copier )( {{type}} from_el, {{type}} * to_el ) );
+// Calls `copier` (or byte-wise copy if null) with all the respective elements
+// in `from` and `to` up to the minimum length of both arrays.
+
+
+void
+array_{{funcname}}__into_array(
+        Array_{{typename}} from,
+        Array_{{typename}} * to );
+// Reallocates `to` to the length of `from`, and copies all elements from
+// `from` to `to`.
+
+
+void
+array_{{funcname}}__into_array_with(
+        Array_{{typename}} from,
+        Array_{{typename}} * to,
+        void ( * copier )( {{type}} from_el, {{type}} * to_el ),
+        void ( * freer )( {{type}} * unused_to_el ) );
+// Calls `freer` (if non-null) with all elements in `to` at indices past the
+// length of `from`, reallocates `to` to the length of `from`, and calls
+// `copier` (or byte-wise copy if null) with all the respective elements in
+// `from` and `to`.
+
+
+Array_{{typename}}
+array_{{funcname}}__id(
+        Array_{{typename}} );
+
+
+{{type}} *
+array_{{funcname}}__elements(
+        Array_{{typename}} );
 
 
 size_t
-arrayc_{{funcname}}__length(
-        ArrayC_{{typename}} );
+array_{{funcname}}__length(
+        Array_{{typename}} );
 
 
 size_t
-arrayc_{{funcname}}__size(
-        ArrayC_{{typename}} );
+array_{{funcname}}__size(
+        Array_{{typename}} );
 
 
 bool
-arrayc_{{funcname}}__is_empty(
-        ArrayC_{{typename}} );
+array_{{funcname}}__is_empty(
+        Array_{{typename}} );
 
 
 bool
-arrayc_{{funcname}}__isnt_empty(
-        ArrayC_{{typename}} );
+array_{{funcname}}__isnt_empty(
+        Array_{{typename}} );
 
 
 bool
-arrayc_{{funcname}}__is_length_1(
-        ArrayC_{{typename}} );
+array_{{funcname}}__is_length_1(
+        Array_{{typename}} );
 
 
 bool
-arrayc_{{funcname}}__same(
-        ArrayC_{{typename}},
-        ArrayC_{{typename}} );
+array_{{funcname}}__same(
+        Array_{{typename}},
+        Array_{{typename}} );
 
 
 {{type}}
-arrayc_{{funcname}}__get(
-        ArrayC_{{typename}},
+array_{{funcname}}__get(
+        Array_{{typename}},
         size_t index );
 
 
-{{type}} const *
-arrayc_{{funcname}}__getp(
-        ArrayC_{{typename}},
+{{type}} *
+array_{{funcname}}__getp(
+        Array_{{typename}},
         size_t index );
 
 
 Maybe_{{typename}}
-arrayc_{{funcname}}__getm(
-        ArrayC_{{typename}},
+array_{{funcname}}__getm(
+        Array_{{typename}},
         size_t index );
 
 
 {{type}}
-arrayc_{{funcname}}__first(
-        ArrayC_{{typename}} );
-
-
-{{type}} const *
-arrayc_{{funcname}}__firstp(
-        ArrayC_{{typename}} );
+array_{{funcname}}__set(
+        Array_{{typename}},
+        size_t index,
+        {{type}} value );
 
 
 Maybe_{{typename}}
-arrayc_{{funcname}}__firstm(
-        ArrayC_{{typename}} );
+array_{{funcname}}__setm(
+        Array_{{typename}},
+        size_t index,
+        {{type}} value );
+
+
+void
+array_{{funcname}}__set_all(
+        Array_{{typename}},
+        {{type}} value );
+
+
+void
+array_{{funcname}}__memset(
+        Array_{{typename}},
+        uchar const byte );
+
+
+void
+array_{{funcname}}__memzero(
+        Array_{{typename}} );
 
 
 {{type}}
-arrayc_{{funcname}}__last(
-        ArrayC_{{typename}} );
+array_{{funcname}}__first(
+        Array_{{typename}} );
 
 
-{{type}} const *
-arrayc_{{funcname}}__lastp(
-        ArrayC_{{typename}} );
+{{type}} *
+array_{{funcname}}__firstp(
+        Array_{{typename}} );
 
 
 Maybe_{{typename}}
-arrayc_{{funcname}}__lastm(
-        ArrayC_{{typename}} );
+array_{{funcname}}__firstm(
+        Array_{{typename}} );
+
+
+{{type}}
+array_{{funcname}}__last(
+        Array_{{typename}} );
+
+
+{{type}} *
+array_{{funcname}}__lastp(
+        Array_{{typename}} );
+
+
+Maybe_{{typename}}
+array_{{funcname}}__lastm(
+        Array_{{typename}} );
 
 
 size_t
-arrayc_{{funcname}}__count(
-        ArrayC_{{typename}},
+array_{{funcname}}__count(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 size_t
-arrayc_{{funcname}}__count_first(
-        ArrayC_{{typename}},
+array_{{funcname}}__count_first(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 size_t
-arrayc_{{funcname}}__count_last(
-        ArrayC_{{typename}},
+array_{{funcname}}__count_last(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__take(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__take(
+        Array_{{typename}},
         size_t n );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__drop(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__drop(
+        Array_{{typename}},
         size_t n );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__take_end(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__take_end(
+        Array_{{typename}},
         size_t n );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__drop_end(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__drop_end(
+        Array_{{typename}},
         size_t n );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__take_while(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__take_while(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__take_end_while(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__take_end_while(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__drop_while(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__drop_while(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__drop_end_while(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__drop_end_while(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__slice(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__slice(
+        Array_{{typename}},
         size_t start,
         size_t stop );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__slice_s(
-        ArrayC_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__slice_s(
+        Array_{{typename}},
         intmax_t start,
         intmax_t stop );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__left_half(
-        ArrayC_{{typename}} );
+Array_{{typename}}
+array_{{funcname}}__left_half(
+        Array_{{typename}} );
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__right_half(
-        ArrayC_{{typename}} );
+Array_{{typename}}
+array_{{funcname}}__right_half(
+        Array_{{typename}} );
 
 
-{{type}} const *
-arrayc_{{funcname}}__find(
-        ArrayC_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-{{type}} const *
-arrayc_{{funcname}}__find_not(
-        ArrayC_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-{{type}} const *
-arrayc_{{funcname}}__find_last(
-        ArrayC_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-{{type}} const *
-arrayc_{{funcname}}__find_last_not(
-        ArrayC_{{typename}},
+Maybe_size
+array_{{funcname}}__find(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 Maybe_size
-arrayc_{{funcname}}__find_index(
-        ArrayC_{{typename}},
+array_{{funcname}}__find_not(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 Maybe_size
-arrayc_{{funcname}}__find_index_not(
-        ArrayC_{{typename}},
+array_{{funcname}}__find_last(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 Maybe_size
-arrayc_{{funcname}}__find_last_index(
-        ArrayC_{{typename}},
+array_{{funcname}}__find_last_not(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
-Maybe_size
-arrayc_{{funcname}}__find_last_index_not(
-        ArrayC_{{typename}},
+{{type}} *
+array_{{funcname}}__findp(
+        Array_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} *
+array_{{funcname}}__findp_not(
+        Array_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} *
+array_{{funcname}}__findp_last(
+        Array_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+{{type}} *
+array_{{funcname}}__findp_last_not(
+        Array_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_{{typename}}
+array_{{funcname}}__findm(
+        Array_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_{{typename}}
+array_{{funcname}}__findm_not(
+        Array_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_{{typename}}
+array_{{funcname}}__findm_last(
+        Array_{{typename}},
+        bool ( * f )( {{type}} ) );
+
+
+Maybe_{{typename}}
+array_{{funcname}}__findm_last_not(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 bool
-arrayc_{{funcname}}__any(
-        ArrayC_{{typename}},
+array_{{funcname}}__any(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 bool
-arrayc_{{funcname}}__all(
-        ArrayC_{{typename}},
+array_{{funcname}}__all(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 bool
-arrayc_{{funcname}}__only_one(
-        ArrayC_{{typename}},
+array_{{funcname}}__only_one(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 bool
-arrayc_{{funcname}}__only_one_not(
-        ArrayC_{{typename}},
+array_{{funcname}}__all_but_one(
+        Array_{{typename}},
         bool ( * f )( {{type}} ) );
 
 
 {{type}}
-arrayc_{{funcname}}__foldl(
-        ArrayC_{{typename}} xs,
+array_{{funcname}}__foldl(
+        Array_{{typename}} xs,
         {{type}} init,
         {{type}} ( * f )( {{type}} acc, {{type}} x ) );
 
 
 {{type}}
-arrayc_{{funcname}}__foldl1(
-        ArrayC_{{typename}} xs,
+array_{{funcname}}__foldl1(
+        Array_{{typename}} xs,
         {{type}} ( * f )( {{type}} acc, {{type}} x ) );
 
 
 {{type}}
-arrayc_{{funcname}}__foldr(
-        ArrayC_{{typename}} xs,
+array_{{funcname}}__foldr(
+        Array_{{typename}} xs,
         {{type}} init,
         {{type}} ( * f )( {{type}} x, {{type}} acc ) );
 
 
 {{type}}
-arrayc_{{funcname}}__foldr1(
-        ArrayC_{{typename}} xs,
+array_{{funcname}}__foldr1(
+        Array_{{typename}} xs,
         {{type}} ( * f )( {{type}} x, {{type}} acc ) );
 
 
-{{type}} const *
-arrayc_{{funcname}}__pick(
-        ArrayC_{{typename}} xs,
-        bool ( * f )( {{type}} const * pick, {{type}} x ) );
+{{type}} *
+array_{{funcname}}__pick(
+        Array_{{typename}} xs,
+        bool ( * f )( {{type}} * pick, {{type}} x ) );
 
 
 bool
-arrayc_{{funcname}}__equal_by(
-        ArrayC_{{typename}} xs,
-        ArrayC_{{typename}} ys,
+array_{{funcname}}__equal_by(
+        Array_{{typename}} xs,
+        Array_{{typename}} ys,
         bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
 bool
-arrayc_{{funcname}}__elem_by(
-        ArrayC_{{typename}} xs,
+array_{{funcname}}__has_prefix_by(
+        Array_{{typename}} xs,
+        Array_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// Returns the boolean that `ys` is a prefix of `xs` under the equality
+// function of `eq`.
+
+
+bool
+array_{{funcname}}__has_suffix_by(
+        Array_{{typename}} xs,
+        Array_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// Returns the boolean that `ys` is a suffix of `xs` under the equality
+// function of `eq`.
+
+
+bool
+array_{{funcname}}__has_infix_by(
+        Array_{{typename}} xs,
+        Array_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// Returns the boolean that `ys` is contained wholly and intact in `xs` under
+// the equality function of `eq`.
+
+
+Maybe_size
+array_{{funcname}}__infix_index_by(
+        Array_{{typename}} xs,
+        Array_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// If `ys` is contained wholly and intact in `xs` under the equality function
+// of `eq`, then returns the index at which `ys` begins within `xs`. Otherwise,
+// returns nothing.
+
+
+{{type}} *
+array_{{funcname}}__infix_ptr_by(
+        Array_{{typename}} xs,
+        Array_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// If `ys` is contained wholly and intact in `xs` under the equality function
+// of `eq`, then returns the pointer at which `ys` begins within `xs`.
+// Otherwise, returns `NULL`.
+
+
+size_t
+array_{{funcname}}__infix_count_by(
+        Array_{{typename}} xs,
+        Array_{{typename}} ys,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+// Returns the number of infixed occurences of `ys` in `xs`.
+
+
+bool
+array_{{funcname}}__elem_by(
+        Array_{{typename}} xs,
         {{type}} y,
         bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
-{{type}} const *
-arrayc_{{funcname}}__elem_ptr_by(
-        ArrayC_{{typename}} xs,
+{{type}} *
+array_{{funcname}}__elem_ptr_by(
+        Array_{{typename}} xs,
         {{type}} y,
         bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
 Maybe_size
-arrayc_{{funcname}}__elem_index_by(
-        ArrayC_{{typename}} xs,
+array_{{funcname}}__elem_index_by(
+        Array_{{typename}} xs,
         {{type}} y,
         bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
 size_t
-arrayc_{{funcname}}__elem_count_by(
-        ArrayC_{{typename}} xs,
+array_{{funcname}}__elem_count_by(
+        Array_{{typename}} xs,
         {{type}} y,
         bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
-ArrayM_{{typename}}
-arrayc_{{funcname}}__replacedf(
-        ArrayC_{{typename}} xs,
+void
+array_{{funcname}}__replacef(
+        Array_{{typename}},
         bool ( * f )( {{type}} x ),
         {{type}} replacement );
 
 
-ArrayM_{{typename}}
-arrayc_{{funcname}}__replaced_by(
-        ArrayC_{{typename}} xs,
+Array_{{typename}}
+array_{{funcname}}__replacedf(
+        Array_{{typename}} xs,
+        bool ( * f )( {{type}} x ),
+        {{type}} replacement );
+
+
+void
+array_{{funcname}}__replace_by(
+        Array_{{typename}} xs,
         {{type}} element,
         {{type}} replacement,
         bool ( * eq )( {{type}} x, {{type}} el ) );
 
 
-struct arrayc_{{funcname}}__each__options {
+Array_{{typename}}
+array_{{funcname}}__replaced_by(
+        Array_{{typename}} xs,
+        {{type}} element,
+        {{type}} replacement,
+        bool ( * eq )( {{type}} x, {{type}} el ) );
+
+
+struct array_{{funcname}}__each__options {
     void ( * f )( {{type}} );
     bool ( * b )( {{type}} );
     void ( * fi )( size_t index, {{type}} );
@@ -427,528 +619,16 @@ struct arrayc_{{funcname}}__each__options {
 };
 
 bool
-arrayc_{{funcname}}__each_(
-        ArrayC_{{typename}},
-        struct arrayc_{{funcname}}__each__options );
+array_{{funcname}}__each_(
+        Array_{{typename}},
+        struct array_{{funcname}}__each__options );
 
-#define arrayc_{{funcname}}__each( XS, ... ) \
-    arrayc_{{funcname}}__each_( XS, \
-        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
+#define array_{{funcname}}__each( XS, ... ) \
+    array_{{funcname}}__each_( XS, \
+        ( struct array_{{funcname}}__each__options ){ __VA_ARGS__ } )
 
 
-struct arrayc_{{funcname}}__eachp__options {
-    void ( * f )( {{type}} const * );
-    bool ( * b )( {{type}} const * );
-    void ( * fi )( size_t index, {{type}} const * );
-    bool ( * bi )( size_t index, {{type}} const * );
-    void ( * fv )( void const * v, {{type}} const * );
-    bool ( * bv )( void const * v, {{type}} const * );
-    void ( * fvi )( void const * v, size_t index, {{type}} const * );
-    bool ( * bvi )( void const * v, size_t index, {{type}} const * );
-    bool ( * where )( {{type}} );
-    bool ( * where_not )( {{type}} );
-    void const * v;
-};
-
-bool
-arrayc_{{funcname}}__eachp_(
-        ArrayC_{{typename}},
-        struct arrayc_{{funcname}}__eachp__options );
-
-#define arrayc_{{funcname}}__eachp( XS, ... ) \
-    arrayc_{{funcname}}__eachp_( XS, \
-        ( struct arrayc_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
-
-
-
-
-///////////////////////////////////
-/// ARRAYM FUNCTIONS
-///////////////////////////////////
-
-
-bool
-arraym_{{funcname}}__is_valid(
-        ArrayM_{{typename}} );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__new(
-        {{type}} const * elements,
-        size_t length );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__new_alloc(
-        size_t length );
-
-
-#define arraym_{{funcname}}__new_els( ... ) \
-    arraym_{{funcname}}__copy_arraym( \
-        ( ArrayM_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ ) )
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_arraym(
-        ArrayM_{{typename}} );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_arrayc(
-        ArrayC_{{typename}} );
-
-
-void
-arraym_{{funcname}}__into_arraym(
-        ArrayM_{{typename}} from,
-        ArrayM_{{typename}} to );
-
-
-void
-arraym_{{funcname}}__into_arraym_with(
-        ArrayM_{{typename}} from,
-        ArrayM_{{typename}} to,
-        void ( * copier )( {{type}} from, {{type}} * to ),
-        void ( * freer )( {{type}} * unused_to ) );
-
-
-void
-arraym_{{funcname}}__free(
-        ArrayM_{{typename}} * xs );
-
-
-void
-arraym_{{funcname}}__realloc(
-        ArrayM_{{typename}} *,
-        size_t new_length );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__id(
-        ArrayM_{{typename}} );
-
-
-{{type}} *
-arraym_{{funcname}}__elements(
-        ArrayM_{{typename}} );
-
-
-size_t
-arraym_{{funcname}}__length(
-        ArrayM_{{typename}} );
-
-
-size_t
-arraym_{{funcname}}__size(
-        ArrayM_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__is_empty(
-        ArrayM_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__isnt_empty(
-        ArrayM_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__is_length_1(
-        ArrayM_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__same(
-        ArrayM_{{typename}},
-        ArrayM_{{typename}} );
-
-
-{{type}}
-arraym_{{funcname}}__get(
-        ArrayM_{{typename}},
-        size_t index );
-
-
-{{type}} *
-arraym_{{funcname}}__getp(
-        ArrayM_{{typename}},
-        size_t index );
-
-
-Maybe_{{typename}}
-arraym_{{funcname}}__getm(
-        ArrayM_{{typename}},
-        size_t index );
-
-
-{{type}}
-arraym_{{funcname}}__set(
-        ArrayM_{{typename}},
-        size_t index,
-        {{type}} value );
-
-
-Maybe_{{typename}}
-arraym_{{funcname}}__setm(
-        ArrayM_{{typename}},
-        size_t index,
-        {{type}} value );
-
-
-void
-arraym_{{funcname}}__set_all(
-        ArrayM_{{typename}},
-        {{type}} value );
-
-
-{{type}}
-arraym_{{funcname}}__first(
-        ArrayM_{{typename}} );
-
-
-{{type}} *
-arraym_{{funcname}}__firstp(
-        ArrayM_{{typename}} );
-
-
-Maybe_{{typename}}
-arraym_{{funcname}}__firstm(
-        ArrayM_{{typename}} );
-
-
-{{type}}
-arraym_{{funcname}}__last(
-        ArrayM_{{typename}} );
-
-
-{{type}} *
-arraym_{{funcname}}__lastp(
-        ArrayM_{{typename}} );
-
-
-Maybe_{{typename}}
-arraym_{{funcname}}__lastm(
-        ArrayM_{{typename}} );
-
-
-size_t
-arraym_{{funcname}}__count(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-size_t
-arraym_{{funcname}}__count_first(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-size_t
-arraym_{{funcname}}__count_last(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__take(
-        ArrayM_{{typename}},
-        size_t n );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__drop(
-        ArrayM_{{typename}},
-        size_t n );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__take_end(
-        ArrayM_{{typename}},
-        size_t n );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__drop_end(
-        ArrayM_{{typename}},
-        size_t n );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__take_while(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__take_end_while(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__drop_while(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__drop_end_while(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__slice(
-        ArrayM_{{typename}},
-        size_t start,
-        size_t stop );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__slice_s(
-        ArrayM_{{typename}},
-        intmax_t start,
-        intmax_t stop );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__left_half(
-        ArrayM_{{typename}} );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__right_half(
-        ArrayM_{{typename}} );
-
-
-{{type}} *
-arraym_{{funcname}}__find(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-{{type}} *
-arraym_{{funcname}}__find_not(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-{{type}} *
-arraym_{{funcname}}__find_last(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-{{type}} *
-arraym_{{funcname}}__find_last_not(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-Maybe_size
-arraym_{{funcname}}__find_index(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-Maybe_size
-arraym_{{funcname}}__find_index_not(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-Maybe_size
-arraym_{{funcname}}__find_last_index(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-Maybe_size
-arraym_{{funcname}}__find_last_index_not(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-bool
-arraym_{{funcname}}__any(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-bool
-arraym_{{funcname}}__all(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-bool
-arraym_{{funcname}}__only_one(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-bool
-arraym_{{funcname}}__only_one_not(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} ) );
-
-
-{{type}}
-arraym_{{funcname}}__foldl(
-        ArrayM_{{typename}} xs,
-        {{type}} init,
-        {{type}} ( * f )( {{type}} acc, {{type}} x ) );
-
-
-{{type}}
-arraym_{{funcname}}__foldl1(
-        ArrayM_{{typename}} xs,
-        {{type}} ( * f )( {{type}} acc, {{type}} x ) );
-
-
-{{type}}
-arraym_{{funcname}}__foldr(
-        ArrayM_{{typename}} xs,
-        {{type}} init,
-        {{type}} ( * f )( {{type}} x, {{type}} acc ) );
-
-
-{{type}}
-arraym_{{funcname}}__foldr1(
-        ArrayM_{{typename}} xs,
-        {{type}} ( * f )( {{type}} x, {{type}} acc ) );
-
-
-{{type}} *
-arraym_{{funcname}}__pick(
-        ArrayM_{{typename}} xs,
-        bool ( * f )( {{type}} const * pick, {{type}} x ) );
-
-
-bool
-arraym_{{funcname}}__equal_by(
-        ArrayM_{{typename}} xs,
-        ArrayM_{{typename}} ys,
-        bool ( * f )( {{type}} x, {{type}} y ) );
-
-
-bool
-arrayc_{{funcname}}__is_prefix_by(
-        ArrayC_{{typename}} xs,
-        ArrayC_{{typename}} ys,
-        bool ( * eq )( {{type}} x, {{type}} y ) );
-// Returns the boolean that `ys` is a prefix of `xs` under the equality
-// function of `eq`.
-
-
-bool
-arrayc_{{funcname}}__is_suffix_by(
-        ArrayC_{{typename}} xs,
-        ArrayC_{{typename}} ys,
-        bool ( * eq )( {{type}} x, {{type}} y ) );
-// Returns the boolean that `ys` is a suffix of `xs` under the equality
-// function of `eq`.
-
-
-bool
-arrayc_{{funcname}}__is_infix_by(
-        ArrayC_{{typename}} xs,
-        ArrayC_{{typename}} ys,
-        bool ( * eq )( {{type}} x, {{type}} y ) );
-// Returns the boolean that `ys` is contained wholly and intact in `xs` under
-// the equality function of `eq`.
-
-
-Maybe_size
-arrayc_{{funcname}}__infix_index_by(
-        ArrayC_{{typename}} xs,
-        ArrayC_{{typename}} ys,
-        bool ( * eq )( {{type}} x, {{type}} y ) );
-// If `ys` is contained wholly and intact in `xs` under the equality function
-// of `eq`, then returns the index at which `ys` begins within `xs`. Otherwise,
-// returns nothing.
-
-
-{{type}} const *
-arrayc_{{funcname}}__infix_ptr_by(
-        ArrayC_{{typename}} xs,
-        ArrayC_{{typename}} ys,
-        bool ( * eq )( {{type}} x, {{type}} y ) );
-// If `ys` is contained wholly and intact in `xs` under the equality function
-// of `eq`, then returns the pointer at which `ys` begins within `xs`.
-// Otherwise, returns `NULL`.
-
-
-bool
-arraym_{{funcname}}__elem_by(
-        ArrayM_{{typename}} xs,
-        {{type}} y,
-        bool ( * f )( {{type}} x, {{type}} y ) );
-
-
-{{type}} *
-arraym_{{funcname}}__elem_ptr_by(
-        ArrayM_{{typename}} xs,
-        {{type}} y,
-        bool ( * f )( {{type}} x, {{type}} y ) );
-
-
-Maybe_size
-arraym_{{funcname}}__elem_index_by(
-        ArrayM_{{typename}} xs,
-        {{type}} y,
-        bool ( * f )( {{type}} x, {{type}} y ) );
-
-
-size_t
-arraym_{{funcname}}__elem_count_by(
-        ArrayM_{{typename}} xs,
-        {{type}} y,
-        bool ( * f )( {{type}} x, {{type}} y ) );
-
-
-void
-arraym_{{funcname}}__replacef(
-        ArrayM_{{typename}},
-        bool ( * f )( {{type}} x ),
-        {{type}} replacement );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__replacedf(
-        ArrayM_{{typename}} xs,
-        bool ( * f )( {{type}} x ),
-        {{type}} replacement );
-
-
-void
-arraym_{{funcname}}__replace_by(
-        ArrayM_{{typename}} xs,
-        {{type}} element,
-        {{type}} replacement,
-        bool ( * eq )( {{type}} x, {{type}} el ) );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__replaced_by(
-        ArrayM_{{typename}} xs,
-        {{type}} element,
-        {{type}} replacement,
-        bool ( * eq )( {{type}} x, {{type}} el ) );
-
-
-bool
-arraym_{{funcname}}__each_(
-        ArrayM_{{typename}},
-        struct arrayc_{{funcname}}__each__options );
-
-#define arraym_{{funcname}}__each( XS, ... ) \
-    arraym_{{funcname}}__each_( XS, \
-        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
-
-
-struct arraym_{{funcname}}__eachp__options {
+struct array_{{funcname}}__eachp__options {
     void ( * f )( {{type}} * );
     bool ( * b )( {{type}} * );
     void ( * fi )( size_t index, {{type}} * );
@@ -963,13 +643,14 @@ struct arraym_{{funcname}}__eachp__options {
 };
 
 bool
-arraym_{{funcname}}__eachp_(
-        ArrayM_{{typename}},
-        struct arraym_{{funcname}}__eachp__options );
+array_{{funcname}}__eachp_(
+        Array_{{typename}},
+        struct array_{{funcname}}__eachp__options );
 
-#define arraym_{{funcname}}__eachp( XS, ... ) \
-    arraym_{{funcname}}__eachp_( XS, \
-        ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
+#define array_{{funcname}}__eachp( XS, ... ) \
+    array_{{funcname}}__eachp_( XS, \
+        ( struct array_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
+
 
 
 
@@ -991,154 +672,87 @@ arraym_{{funcname}}__eachp_(
 
 
 bool
-arrayc_{{funcname}}__equal(
-        ArrayC_{{typename}},
-        ArrayC_{{typename}} );
+array_{{funcname}}__equal(
+        Array_{{typename}},
+        Array_{{typename}} );
 
 
 bool
-arrayc_{{funcname}}__not_equal(
-        ArrayC_{{typename}},
-        ArrayC_{{typename}} );
+array_{{funcname}}__not_equal(
+        Array_{{typename}},
+        Array_{{typename}} );
 
 
 bool
-arrayc_{{funcname}}__is_prefix(
-        ArrayC_{{typename}},
-        ArrayC_{{typename}} );
+array_{{funcname}}__is_prefix(
+        Array_{{typename}},
+        Array_{{typename}} );
 
 
 bool
-arrayc_{{funcname}}__is_suffix(
-        ArrayC_{{typename}},
-        ArrayC_{{typename}} );
+array_{{funcname}}__is_suffix(
+        Array_{{typename}},
+        Array_{{typename}} );
 
 
 bool
-arrayc_{{funcname}}__is_infix(
-        ArrayC_{{typename}},
-        ArrayC_{{typename}} );
+array_{{funcname}}__is_infix(
+        Array_{{typename}},
+        Array_{{typename}} );
 
 
 Maybe_size
-arrayc_{{funcname}}__infix_index(
-        ArrayC_{{typename}},
-        ArrayC_{{typename}} );
-
-
-{{type}} const *
-arrayc_{{funcname}}__infix_ptr(
-        ArrayC_{{typename}},
-        ArrayC_{{typename}} );
-
-
-bool
-arrayc_{{funcname}}__elem(
-        ArrayC_{{typename}},
-        {{type}} );
-
-
-{{type}} const *
-arrayc_{{funcname}}__elem_ptr(
-        ArrayC_{{typename}},
-        {{type}} );
-
-
-Maybe_size
-arrayc_{{funcname}}__elem_index(
-        ArrayC_{{typename}},
-        {{type}} );
-
-
-size_t
-arrayc_{{funcname}}__elem_count(
-        ArrayC_{{typename}},
-        {{type}} );
-
-
-ArrayM_{{typename}}
-arrayc_{{funcname}}__replaced(
-        ArrayC_{{typename}},
-        {{type}} element,
-        {{type}} replacement );
-
-
-bool
-arraym_{{funcname}}__equal(
-        ArrayM_{{typename}},
-        ArrayM_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__not_equal(
-        ArrayM_{{typename}},
-        ArrayM_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__is_prefix(
-        ArrayM_{{typename}},
-        ArrayM_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__is_suffix(
-        ArrayM_{{typename}},
-        ArrayM_{{typename}} );
-
-
-bool
-arraym_{{funcname}}__is_infix(
-        ArrayM_{{typename}},
-        ArrayM_{{typename}} );
-
-
-Maybe_size
-arraym_{{funcname}}__infix_index(
-        ArrayM_{{typename}},
-        ArrayM_{{typename}} );
+array_{{funcname}}__infix_index(
+        Array_{{typename}},
+        Array_{{typename}} );
 
 
 {{type}} *
-arraym_{{funcname}}__infix_ptr(
-        ArrayM_{{typename}},
-        ArrayC_{{typename}} );
+array_{{funcname}}__infix_ptr(
+        Array_{{typename}},
+        Array_{{typename}} );
+
+
+size_t
+array_{{funcname}}__infix_count(
+        Array_{{typename}},
+        Array_{{typename}} );
 
 
 bool
-arraym_{{funcname}}__elem(
-        ArrayM_{{typename}},
+array_{{funcname}}__elem(
+        Array_{{typename}},
         {{type}} );
 
 
 {{type}} *
-arraym_{{funcname}}__elem_ptr(
-        ArrayM_{{typename}},
+array_{{funcname}}__elem_ptr(
+        Array_{{typename}},
         {{type}} );
 
 
 Maybe_size
-arraym_{{funcname}}__elem_index(
-        ArrayM_{{typename}},
+array_{{funcname}}__elem_index(
+        Array_{{typename}},
         {{type}} );
 
 
 size_t
-arraym_{{funcname}}__elem_count(
-        ArrayM_{{typename}},
+array_{{funcname}}__elem_count(
+        Array_{{typename}},
         {{type}} );
 
 
 void
-arraym_{{funcname}}__replace(
-        ArrayM_{{typename}},
+array_{{funcname}}__replace(
+        Array_{{typename}},
         {{type}} element,
         {{type}} replacement );
 
 
-ArrayM_{{typename}}
-arraym_{{funcname}}__replaced(
-        ArrayM_{{typename}},
+Array_{{typename}}
+array_{{funcname}}__replaced(
+        Array_{{typename}},
         {{type}} element,
         {{type}} replacement );
 
@@ -1149,22 +763,15 @@ arraym_{{funcname}}__replaced(
 {% call typeclass('FROM_STR') %}
 
 
-ArrayC_{{typename}}
-arrayc_{{funcname}}__view_str(
-        {{type}} const * xs );
-// Returns a constant array representation of the buffer `xs` terminated by
-// `{{funcname}}__zero()`.
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__view_str(
+Array_{{typename}}
+array_{{funcname}}__view_str(
         {{type}} * xs );
 // Returns a constant array representation of the buffer `xs` terminated by
 // `{{funcname}}__zero()`.
 
 
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_str(
+Array_{{typename}}
+array_{{funcname}}__copy_str(
         {{type}} const * const xs )
 
 

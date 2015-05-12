@@ -12,28 +12,30 @@
 
 static
 void
-test_array_short( void )
+test_macro_constructor( void )
 {
-    ArrayC_short const xs = ARRAY_SHORT( 89, 2, 77, 5, 123 );
-    ArrayC_short const ys = ARRAY_SHORT( 77, 5, 123 );
-    ASSERT( xs.length == 5,
-            xs.e[ 0 ] == 89,
-            xs.e[ 4 ] == 123,
-            ys.length == 3,
-            arrayc_short__find_index( xs, short__is_even ).value == 1,
-            arrayc_short__all( xs, short__is_positive ) );
+    Array_short const xs = ARRAY_SHORT( 89, 2, 77 );
+    ASSERT( xs.length == 3, xs.e[ 0 ] == 89, xs.e[ 1 ] == 2, xs.e[ 2 ] == 77 );
+    int y = 3;
+    Array_ptrm_int const ys = ARRAY_PTRM_INT( &( int ){ 1 }, &y, &( int ){ 54 } );
+    ASSERT( ys.length == 3,
+            *( ys.e[ 0 ] ) == 1, ys.e[ 1 ] == &y, *( ys.e[ 2 ] ) == 54 );
 }
 
 
 static
 void
-test_array_uintmax( void )
+test_equal( void )
 {
-    ArrayC_uintmax const xs = ARRAY_UINTMAX( 12345, 98888, 213 );
-    ArrayC_uintmax const ys = ARRAY_UINTMAX( 12345, 98888, 213 );
-    ASSERT( xs.length == 3,
-            arrayc_uintmax__equal( xs, ys ),
-            arrayc_uintmax__all( xs, uintmax__is_positive ) );
+    Array_uintmax const xs = ARRAY_UINTMAX( 12345, 98888, 213 );
+    Array_uintmax const ys = ARRAY_UINTMAX( 12345, 98888, 213 );
+    Array_uintmax const zs = ARRAY_UINTMAX( 12345, 213 );
+    ASSERT( array_uintmax__equal( xs, ys ),
+            array_uintmax__equal( ys, xs ),
+            !array_uintmax__equal( xs, zs ),
+            !array_uintmax__equal( ys, zs ),
+            !array_uintmax__equal( zs, xs ),
+            !array_uintmax__equal( zs, ys ) );
 }
 
 
@@ -50,17 +52,30 @@ ptrm_int_equal_val( int * const x,
 
 static
 void
-test_array_ptrm_int( void )
+test_equal_by( void )
 {
     int a = 2;
-    ArrayC_ptrm_int const xs = ARRAY_PTRM_INT( &( int ){ 1 }, &a,
-                                               &( int ){ 4 }, &( int ){ 8 } );
-    ArrayC_ptrm_int const ys = ARRAY_PTRM_INT( &( int ){ 1 }, &a,
-                                               &( int ){ 4 }, &( int ){ 8 } );
+    Array_ptrm_int const xs = ARRAY_PTRM_INT( &( int ){ 1 }, &a,
+                                              &( int ){ 4 }, &( int ){ 8 } );
+    Array_ptrm_int const ys = ARRAY_PTRM_INT( &( int ){ 1 }, &a,
+                                              &( int ){ 4 }, &( int ){ 8 } );
     ASSERT( xs.length == 4, ys.length == 4,
             xs.e[ 1 ] == &a, ys.e[ 1 ] == &a,
-            !arrayc_ptrm_int__equal( xs, ys ),
-            arrayc_ptrm_int__equal_by( xs, ys, ptrm_int_equal_val ) );
+            !array_ptrm_int__equal( xs, ys ),
+            array_ptrm_int__equal_by( xs, ys, ptrm_int_equal_val ) );
+}
+
+
+static
+void
+test_logic( void )
+{
+    Array_short const xs = ARRAY_SHORT( 1, 2, 3, -1 );
+    ASSERT( array_short__all( xs, short__is_nonzero ) );
+    Array_uintmax const ys = ARRAY_UINTMAX( 0, 0, 1, 32 );
+    ASSERT( array_uintmax__any( ys, uintmax__is_positive ) );
+    Array_short const zs = ARRAY_SHORT( 1, 0, 56, 23 );
+    ASSERT( array_short__all_but_one( zs, short__is_positive ) );
 }
 
 
@@ -68,39 +83,38 @@ static
 void
 test_replace( void )
 {
-    ArrayC_short xs = ARRAY_SHORT( 3, 4, -8, 4, 4, 5, 4, -1 );
+    Array_short xs = ARRAY_SHORT( 3, 4, -8, 4, 4, 5, 4, -1 );
 
-    ArrayM_short ys = arrayc_short__replaced( xs, 4, 6 );
-    ASSERT( arraym_short__equal( ys,
-                                 ARRAYM_SHORT( 3, 6, -8, 6, 6, 5, 6, -1 ) ) );
+    Array_short ys = array_short__replaced( xs, 4, 6 );
+    ASSERT( array_short__equal( ys,
+                ( Array_short ) ARRAY_SHORT( 3, 6, -8, 6, 6, 5, 6, -1 ) ) );
 
-    arraym_short__replace( ys, 5, 0 );
-    ASSERT( arraym_short__equal( ys,
-                                 ARRAYM_SHORT( 3, 6, -8, 6, 6, 0, 6, -1 ) ) );
+    array_short__replace( ys, 5, 0 );
+    ASSERT( array_short__equal( ys,
+                ( Array_short ) ARRAY_SHORT( 3, 6, -8, 6, 6, 0, 6, -1 ) ) );
 
-    arraym_short__replacef( ys, short__is_negative, 7 );
-    ASSERT( arraym_short__equal( ys,
-                                 ARRAYM_SHORT( 3, 6, 7, 6, 6, 0, 6, 7 ) ) );
+    array_short__replacef( ys, short__is_negative, 7 );
+    ASSERT( array_short__equal( ys,
+                ( Array_short ) ARRAY_SHORT( 3, 6, 7, 6, 6, 0, 6, 7 ) ) );
 
-    ArrayM_short zs = arraym_short__replacedf( ys, short__is_zero, 1 );
-    ASSERT( arraym_short__equal( zs,
-                                 ARRAYM_SHORT( 3, 6, 7, 6, 6, 1, 6, 7 ) ) );
+    Array_short zs = array_short__replacedf( ys, short__is_zero, 1 );
+    ASSERT( array_short__equal( zs,
+                ( Array_short ) ARRAY_SHORT( 3, 6, 7, 6, 6, 1, 6, 7 ) ) );
 
-    arraym_short__free( &ys );
-    arraym_short__free( &zs );
+    array_short__free( &ys );
+    array_short__free( &zs );
 }
 
 
 int
 main( void )
 {
-    test_array_short();
-    printf( "All `array-short` assertions passed.\n" );
-    test_array_uintmax();
-    printf( "All `array-uintmax` assertions passed.\n" );
-    test_array_ptrm_int();
-    printf( "All `array-ptrm-int` assertions passed.\n" );
-    test_replace();
-    printf( "All replacement tests passed.\n" );
+    puts( "Running unit tests..." );
+    test_macro_constructor();   puts( "  macro constructor tests passed" );
+    test_equal();               puts( "  equality tests passed" );
+    test_equal_by();            puts( "  custom equality tests passed" );
+    test_logic();               puts( "  logic tests passed" );
+    test_replace();             puts( "  replacement tests passed" );
+    puts( "All unit tests passed!" );
 }
 

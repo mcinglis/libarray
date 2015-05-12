@@ -43,12 +43,12 @@ libbase_sources := $(foreach t,$(libbase_types),$(LIBBASE)/$t.c)
 libbase_headers := $(libbase_sources:.c=.h)
 libbase_objects := $(libbase_sources:.c=.o)
 
-libmaybe_sources := $(foreach t,$(libmaybe_types),$(LIBMAYBE)/maybe-$t.c)
+libmaybe_sources := $(foreach t,$(libmaybe_types),$(LIBMAYBE)/maybe_$t.c)
 libmaybe_headers := $(libmaybe_sources:.c=.h)
-libmaybe_defs    := $(foreach t,$(libmaybe_types),$(LIBMAYBE)/def/maybe-$t.h)
+libmaybe_defs    := $(foreach t,$(libmaybe_types),$(LIBMAYBE)/def/maybe_$t.h)
 libmaybe_objects := $(libmaybe_sources:.c=.o)
 
-libarray_sources := $(foreach t,$(libarray_types),array-$t.c)
+libarray_sources := $(foreach t,$(libarray_types),array_$t.c)
 libarray_headers := $(libarray_sources:.c=.h)
 libarray_defs    := $(addprefix def/,$(libarray_headers))
 libarray_objects := $(libarray_sources:.c=.o)
@@ -112,43 +112,43 @@ $(libbase_sources): $(LIBBASE)/%.c: $(LIBBASE)/source.c.jinja
 
 $(libbase_objects): $(LIBBASE)/%.o: $(LIBBASE)/%.h
 
-$(libmaybe_defs): $(LIBMAYBE)/def/maybe-%.h: $(LIBMAYBE)/def.h.jinja
+$(libmaybe_defs): $(LIBMAYBE)/def/maybe_%.h: $(LIBMAYBE)/def.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(libmaybe_headers): $(LIBMAYBE)/maybe-%.h: $(LIBMAYBE)/header.h.jinja
+$(libmaybe_headers): $(LIBMAYBE)/maybe_%.h: $(LIBMAYBE)/header.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(libmaybe_sources): $(LIBMAYBE)/maybe-%.c: $(LIBMAYBE)/source.c.jinja
+$(libmaybe_sources): $(LIBMAYBE)/maybe_%.c: $(LIBMAYBE)/source.c.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) --sys-headers "libbase/$*.h" -o $@
 
-$(libmaybe_objects): $(LIBMAYBE)/maybe-%.o: \
-    $(LIBMAYBE)/def/maybe-%.h \
-    $(LIBMAYBE)/maybe-%.h \
+$(libmaybe_objects): $(LIBMAYBE)/maybe_%.o: \
+    $(LIBMAYBE)/def/maybe_%.h \
+    $(LIBMAYBE)/maybe_%.h \
     $(LIBBASE)/%.h
 
-$(libarray_defs): def/array-%.h: def.h.jinja
+$(libarray_defs): def/array_%.h: def.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(libarray_headers): array-%.h: header.h.jinja
+$(libarray_headers): array_%.h: header.h.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
 
-$(libarray_sources): array-%.c: source.c.jinja
+$(libarray_sources): array_%.c: source.c.jinja
 	$(eval n := $(call name_from_path,$*))
 	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) --sys-headers "libbase/$*.h" -o $@
 
-$(libarray_objects): array-%.o: \
-    array-%.h \
-    def/array-%.h \
+$(libarray_objects): array_%.o: \
+    array_%.h \
+    def/array_%.h \
     $(LIBBASE)/%.h \
     $(LIBBASE)/size.h \
-    $(LIBMAYBE)/def/maybe-size.h \
-    $(LIBMAYBE)/def/maybe-%.h \
-    $(LIBMAYBE)/maybe-%.h
+    $(LIBMAYBE)/def/maybe_size.h \
+    $(LIBMAYBE)/def/maybe_%.h \
+    $(LIBMAYBE)/maybe_%.h
 
 
 -include $(mkdeps)

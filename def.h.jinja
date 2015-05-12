@@ -41,29 +41,15 @@
 {% endfor %}
 
 
-typedef struct arrayc_{{funcname}} {
-    {{type}} const * e;
-    size_t length;
-} ArrayC_{{typename}};
-
-
-typedef struct arraym_{{funcname}} {
+typedef struct array_{{funcname}} {
     {{type}} * e;
     size_t length;
-} ArrayM_{{typename}};
+} Array_{{typename}};
 
 
 #define ARRAY_{{macroname}}( ... ) \
     { .e      = ( {{type}}[] ){ __VA_ARGS__ }, \
       .length = NELEM( ( {{type}}[] ){ __VA_ARGS__ } ) }
-
-
-#define ARRAYC_{{macroname}}( ... ) \
-    ( ArrayC_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ )
-
-
-#define ARRAYM_{{macroname}}( ... ) \
-    ( ArrayM_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ )
 
 
 #endif // ifndef LIBARRAY_DEF_ARRAY_{{macroname}}_H
