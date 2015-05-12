@@ -151,8 +151,8 @@ array_{{funcname}}__new(
     errno = 0;
     Array_{{typename}} const new = array_{{funcname}}__new_alloc( length );
     if ( errno ) { return ( Array_{{typename}} ){ 0 }; }
-    array_{{funcname}}__memcpy( new, elements,
-                                size__mul( length, sizeof ( {{type}} ) ) );
+    array_{{funcname}}__memcpy_in( new, elements,
+                                   size__mul( length, sizeof ( {{type}} ) ) );
     return new;
 }
 
@@ -230,7 +230,7 @@ array_{{funcname}}__realloc(
 
 
 void
-array_{{funcname}}__memcpy(
+array_{{funcname}}__memcpy_in(
         Array_{{typename}} const to,
         void const * const from,
         size_t const from_size )
@@ -1559,7 +1559,7 @@ array_{{funcname}}__replaced(
 {% endcall %}
 
 
-{% call typeclass('FROM_STR') %}
+{% call typeclass('NUM') %}
 
 
 #include <string.h>

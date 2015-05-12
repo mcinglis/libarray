@@ -86,20 +86,16 @@ test_replace( void )
     Array_short xs = ARRAY_SHORT( 3, 4, -8, 4, 4, 5, 4, -1 );
 
     Array_short ys = array_short__replaced( xs, 4, 6 );
-    ASSERT( array_short__equal( ys,
-                ( Array_short ) ARRAY_SHORT( 3, 6, -8, 6, 6, 5, 6, -1 ) ) );
+    ASSERT( array_short__equal_els( ys, 3, 6, -8, 6, 6, 5, 6, -1 ) );
 
     array_short__replace( ys, 5, 0 );
-    ASSERT( array_short__equal( ys,
-                ( Array_short ) ARRAY_SHORT( 3, 6, -8, 6, 6, 0, 6, -1 ) ) );
+    ASSERT( array_short__equal_els( ys, 3, 6, -8, 6, 6, 0, 6, -1 ) );
 
     array_short__replacef( ys, short__is_negative, 7 );
-    ASSERT( array_short__equal( ys,
-                ( Array_short ) ARRAY_SHORT( 3, 6, 7, 6, 6, 0, 6, 7 ) ) );
+    ASSERT( array_short__equal_els( ys, 3, 6, 7, 6, 6, 0, 6, 7 ) );
 
     Array_short zs = array_short__replacedf( ys, short__is_zero, 1 );
-    ASSERT( array_short__equal( zs,
-                ( Array_short ) ARRAY_SHORT( 3, 6, 7, 6, 6, 1, 6, 7 ) ) );
+    ASSERT( array_short__equal_els( zs, 3, 6, 7, 6, 6, 1, 6, 7 ) );
 
     array_short__free( &ys );
     array_short__free( &zs );
@@ -112,13 +108,9 @@ test_from_str( void )
 {
     Array_short const xs = array_short__view_str(
                                ( short[] ){ 321, 98, 32, 0 } );
-    ASSERT( xs.length == 3,
-            array_short__equal( ( Array_short ) ARRAY_SHORT( 321, 98, 32 ),
-                                xs ) );
+    ASSERT( xs.length == 3, array_short__equal_els( xs, 321, 98, 32 ) );
     Array_short ys = array_short__copy_str( ( short[] ){ 11, 22, 0, 33 } );
-    ASSERT( ys.length == 2,
-            array_short__equal( ( Array_short ) ARRAY_SHORT( 11, 22 ),
-                                ys ) );
+    ASSERT( ys.length == 2, array_short__equal_els( ys, 11, 22 ) );
     array_short__free( &ys );
 }
 

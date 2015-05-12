@@ -25,7 +25,7 @@ libmaybe_types := $(libarray_types) size
 libbase_types  := $(libmaybe_types)
 
 short_type       := short
-short_options    := --typeclasses BOUNDED EQ ORD ENUM NUM FROM_STR \
+short_options    := --typeclasses BOUNDED EQ ORD ENUM NUM \
                     --extra num_type=signed min_bound=SHRT_MIN max_bound=SHRT_MAX
 
 uintmax_type     := uintmax_t

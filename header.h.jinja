@@ -92,7 +92,7 @@ array_{{funcname}}__realloc(
 
 
 void
-array_{{funcname}}__memcpy(
+array_{{funcname}}__memcpy_in(
         Array_{{typename}} to,
         void const * from,
         size_t from_size );
@@ -683,6 +683,11 @@ array_{{funcname}}__not_equal(
         Array_{{typename}} );
 
 
+#define array_{{funcname}}__equal_els( XS, ... ) \
+    array_{{funcname}}__equal( XS, \
+        ( Array_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ ) )
+
+
 bool
 array_{{funcname}}__is_prefix(
         Array_{{typename}},
@@ -760,7 +765,7 @@ array_{{funcname}}__replaced(
 {% endcall %}
 
 
-{% call typeclass('FROM_STR') %}
+{% call typeclass('NUM') %}
 
 
 Array_{{typename}}
