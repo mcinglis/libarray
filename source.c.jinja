@@ -1571,7 +1571,7 @@ strlen_null(
         {{type}} const * const xs )
 {
     if ( xs == NULL ) { return 0; }
-    size_t count = 1;
+    size_t count = 0;
     while ( !{{funcname}}__equal( xs[ count ], {{funcname}}__zero() ) ) {
         count++;
     }
@@ -1583,7 +1583,7 @@ Array_{{typename}}
 array_{{funcname}}__view_str(
         {{type}} * const xs )
 {
-    return ( Array_{{typename}} ){ .e = xs, .length = strlen_null( xs ) };
+    return array_{{funcname}}__new_view( xs, strlen_null( xs ) );
 }
 
 
@@ -1591,8 +1591,7 @@ Array_{{typename}}
 array_{{funcname}}__copy_str(
         {{type}} const * const xs )
 {
-    return array_{{funcname}}__copy_array(
-               array_{{funcname}}__view_str( xs ) );
+    return array_{{funcname}}__new( xs, strlen_null( xs ) );
 }
 
 

@@ -106,6 +106,23 @@ test_replace( void )
 }
 
 
+static
+void
+test_from_str( void )
+{
+    Array_short const xs = array_short__view_str(
+                               ( short[] ){ 321, 98, 32, 0 } );
+    ASSERT( xs.length == 3,
+            array_short__equal( ( Array_short ) ARRAY_SHORT( 321, 98, 32 ),
+                                xs ) );
+    Array_short ys = array_short__copy_str( ( short[] ){ 11, 22, 0, 33 } );
+    ASSERT( ys.length == 2,
+            array_short__equal( ( Array_short ) ARRAY_SHORT( 11, 22 ),
+                                ys ) );
+    array_short__free( &ys );
+}
+
+
 int
 main( void )
 {
@@ -115,6 +132,7 @@ main( void )
     test_equal_by();            puts( "  custom equality tests passed" );
     test_logic();               puts( "  logic tests passed" );
     test_replace();             puts( "  replacement tests passed" );
+    test_from_str();            puts( "  from-str tests passed" );
     puts( "All unit tests passed!" );
 }
 
