@@ -20,7 +20,7 @@ CFLAGS ?= -std=c11 -g \
 TPLRENDER ?= $(DEPS_DIR)/tplrender/tplrender
 
 
-libarray_types := short uintmax ptrm-int
+libarray_types := short uintmax ptrm_int
 libbase_types  := $(libarray_types) size
 libmaybe_types := $(libarray_types) size
 
@@ -100,29 +100,22 @@ clean:
 
 tests/test: $(gen_objects)
 
-name_from_path = $(subst -,_,$1)
-
 $(libbase_headers): $(LIBBASE)/%.h: $(LIBBASE)/header.h.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
+	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) -o $@
 
 $(libbase_sources): $(LIBBASE)/%.c: $(LIBBASE)/source.c.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
+	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) -o $@
 
 $(libbase_objects): $(LIBBASE)/%.o: $(LIBBASE)/%.h
 
 $(libmaybe_defs): $(LIBMAYBE)/def/maybe_%.h: $(LIBMAYBE)/def.h.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
+	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) -o $@
 
 $(libmaybe_headers): $(LIBMAYBE)/maybe_%.h: $(LIBMAYBE)/header.h.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
+	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) -o $@
 
 $(libmaybe_sources): $(LIBMAYBE)/maybe_%.c: $(LIBMAYBE)/source.c.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) --sys-headers "libbase/$*.h" -o $@
+	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) --sys-headers "libbase/$*.h" -o $@
 
 $(libmaybe_objects): $(LIBMAYBE)/maybe_%.o: \
     $(LIBMAYBE)/def/maybe_%.h \
@@ -130,16 +123,13 @@ $(libmaybe_objects): $(LIBMAYBE)/maybe_%.o: \
     $(LIBBASE)/%.h
 
 $(libarray_defs): def/array_%.h: def.h.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
+	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) -o $@
 
 $(libarray_headers): array_%.h: header.h.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) -o $@
+	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) -o $@
 
 $(libarray_sources): array_%.c: source.c.jinja
-	$(eval n := $(call name_from_path,$*))
-	$(TPLRENDER) $< "$($(n)_type)" $($(n)_options) --sys-headers "libbase/$*.h" -o $@
+	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) --sys-headers "libbase/$*.h" -o $@
 
 $(libarray_objects): array_%.o: \
     array_%.h \

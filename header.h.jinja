@@ -31,13 +31,13 @@
 
 
 #include <libtypes/types.h>
-#include <libmaybe/def/maybe-size.h>
-#include <libmaybe/def/maybe-{{filename}}.h>
+#include <libmaybe/def/maybe_size.h>
+#include <libmaybe/def/maybe_{{filename}}.h>
 {% for p in sys_headers %}
 #include <{{p}}>
 {% endfor %}
 
-#include "def/array-{{filename}}.h"
+#include "def/array_{{filename}}.h"
 {% for path in rel_headers %}
 #include "{{p}}"
 {% endfor %}

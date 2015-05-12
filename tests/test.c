@@ -5,9 +5,9 @@
 #include <libbase/short.h>
 #include <libbase/uintmax.h>
 
-#include "../array-short.h"
-#include "../array-uintmax.h"
-#include "../array-ptrm-int.h"
+#include "../array_short.h"
+#include "../array_uintmax.h"
+#include "../array_ptrm_int.h"
 
 
 static

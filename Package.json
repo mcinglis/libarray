@@ -18,7 +18,7 @@
         { "dev":  true,
           "repo": [ "https://bitbucket.org/mcinglis/tplrender.git",
                     "https://github.com/mcinglis/tplrender.git" ],
-          "tag":  "v0.1.*"
+          "tag":  "v1.*"
         },
         { "dev":  true,
           "repo": [ "https://bitbucket.org/mcinglis/libbase.git",
