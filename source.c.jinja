@@ -482,6 +482,30 @@ array_{{funcname}}__set_all(
 
 
 void
+array_{{funcname}}__set_first(
+        Array_{{typename}} const xs,
+        {{type}} const value )
+{
+    ASSERT( array_{{funcname}}__is_valid( xs ),
+            array_{{funcname}}__isnt_empty( xs ) );
+
+    *( array_{{funcname}}__firstp( xs ) ) = value;
+}
+
+
+void
+array_{{funcname}}__set_last(
+        Array_{{typename}} const xs,
+        {{type}} const value )
+{
+    ASSERT( array_{{funcname}}__is_valid( xs ),
+            array_{{funcname}}__isnt_empty( xs ) );
+
+    *( array_{{funcname}}__lastp( xs ) ) = value;
+}
+
+
+void
 array_{{funcname}}__memset(
         Array_{{typename}} const xs,
         uchar const byte )
@@ -1579,18 +1603,18 @@ strlen_null(
 
 
 Array_{{typename}}
-array_{{funcname}}__view_str(
-        {{type}} * const xs )
+array_{{funcname}}__view_strm(
+        {{type}} * const strm )
 {
-    return array_{{funcname}}__new_view( xs, strlen_null( xs ) );
+    return array_{{funcname}}__new_view( strm, strlen_null( strm ) );
 }
 
 
 Array_{{typename}}
 array_{{funcname}}__copy_str(
-        {{type}} const * const xs )
+        {{type}} const * const str )
 {
-    return array_{{funcname}}__new( xs, strlen_null( xs ) );
+    return array_{{funcname}}__new( str, strlen_null( str ) );
 }
 
 

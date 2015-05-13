@@ -226,6 +226,18 @@ array_{{funcname}}__set_all(
 
 
 void
+array_{{funcname}}__set_first(
+        Array_{{typename}},
+        {{type}} value );
+
+
+void
+array_{{funcname}}__set_last(
+        Array_{{typename}},
+        {{type}} value );
+
+
+void
 array_{{funcname}}__memset(
         Array_{{typename}},
         uchar const byte );
@@ -769,15 +781,15 @@ array_{{funcname}}__replaced(
 
 
 Array_{{typename}}
-array_{{funcname}}__view_str(
-        {{type}} * xs );
-// Returns a constant array representation of the buffer `xs` terminated by
+array_{{funcname}}__view_strm(
+        {{type}} * strm );
+// Returns a constant array representation of the buffer `strm` terminated by
 // `{{funcname}}__zero()`.
 
 
 Array_{{typename}}
 array_{{funcname}}__copy_str(
-        {{type}} const * const xs );
+        {{type}} const * const str );
 
 
 {% endcall %}

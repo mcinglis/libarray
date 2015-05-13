@@ -106,10 +106,11 @@ static
 void
 test_from_str( void )
 {
-    Array_short const xs = array_short__view_str(
-                               ( short[] ){ 321, 98, 32, 0 } );
+    Array_short const xs = array_short__view_strm(
+                               ( short [] ){ 321, 98, 32, 0 } );
     ASSERT( xs.length == 3, array_short__equal_els( xs, 321, 98, 32 ) );
-    Array_short ys = array_short__copy_str( ( short[] ){ 11, 22, 0, 33 } );
+    Array_short ys = array_short__copy_str(
+                         ( short const [] ){ 11, 22, 0, 33 } );
     ASSERT( ys.length == 2, array_short__equal_els( ys, 11, 22 ) );
     array_short__free( &ys );
 }
