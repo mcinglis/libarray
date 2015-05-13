@@ -272,8 +272,7 @@ array_{{funcname}}__copy_into_array_with(
         void ( * const copier )( {{type}} from_el, {{type}} * to_el ) )
 {
     ASSERT( array_{{funcname}}__is_valid( from ),
-            array_{{funcname}}__is_valid( to ),
-            copier != NULL );
+            array_{{funcname}}__is_valid( to ) );
 
     errno = 0;
     for ( size_t i = 0; i < MIN( from.length, to.length ); i++ ) {
