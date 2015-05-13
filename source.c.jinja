@@ -481,7 +481,7 @@ array_{{funcname}}__set_all(
 }
 
 
-void
+{{type}}
 array_{{funcname}}__set_first(
         Array_{{typename}} const xs,
         {{type}} const value )
@@ -489,11 +489,11 @@ array_{{funcname}}__set_first(
     ASSERT( array_{{funcname}}__is_valid( xs ),
             array_{{funcname}}__isnt_empty( xs ) );
 
-    *( array_{{funcname}}__firstp( xs ) ) = value;
+    return array_{{funcname}}__set( xs, 0, value );
 }
 
 
-void
+{{type}}
 array_{{funcname}}__set_last(
         Array_{{typename}} const xs,
         {{type}} const value )
@@ -501,7 +501,7 @@ array_{{funcname}}__set_last(
     ASSERT( array_{{funcname}}__is_valid( xs ),
             array_{{funcname}}__isnt_empty( xs ) );
 
-    *( array_{{funcname}}__lastp( xs ) ) = value;
+    return array_{{funcname}}__set( xs, xs.length - 1, value );
 }
 
 
