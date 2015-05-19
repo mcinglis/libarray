@@ -1066,11 +1066,55 @@ arrayc_{{funcname}}__elem_index_by(
     ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
 
     for ( size_t i = 0; i < xs.length; i++ ) {
-        if ( eq( xs.e[ i ], y ) ) {
+        if ( eq( arrayc_{{funcname}}__get( xs, i ), y ) ) {
             return ( Maybe_size ){ .value = i };
         }
     }
     return ( Maybe_size ){ .nothing = true };
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_ptr_by(
+        ArrayC_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    Maybe_size const mi = arrayc_{{funcname}}__elem_index_by( xs, y, eq );
+    return mi.nothing ? NULL : arrayc_{{funcname}}__getp( xs, mi.value );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__elem_last_index_by(
+        ArrayC_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    for ( size_t _i = xs.length; _i > 0; _i-- ) {
+        size_t i = _i - 1;
+        if ( eq( arrayc_{{funcname}}__get( xs, i ), y ) ) {
+            return ( Maybe_size ){ .value = i };
+        }
+    }
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_last_ptr_by(
+        ArrayC_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    Maybe_size const mi = arrayc_{{funcname}}__elem_last_index_by( xs, y, eq );
+    return mi.nothing ? NULL : arrayc_{{funcname}}__getp( xs, mi.value );
 }
 
 
@@ -2065,8 +2109,8 @@ arraym_{{funcname}}__foldl(
 
 {{type}}
 arraym_{{funcname}}__foldl1(
-        ArrayM_{{typename}} xs,
-        {{type}} ( * f )( {{type}} acc, {{type}} x ) )
+        ArrayM_{{typename}} const xs,
+        {{type}} ( * const f )( {{type}} acc, {{type}} x ) )
 {
     ASSERT( arraym_{{funcname}}__is_valid( xs ), xs.length > 0, f != NULL );
 
@@ -2077,9 +2121,9 @@ arraym_{{funcname}}__foldl1(
 
 {{type}}
 arraym_{{funcname}}__foldr(
-        ArrayM_{{typename}} xs,
-        {{type}} init,
-        {{type}} ( * f )( {{type}} x, {{type}} acc ) )
+        ArrayM_{{typename}} const xs,
+        {{type}} const init,
+        {{type}} ( * const f )( {{type}} x, {{type}} acc ) )
 {
     ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
 
@@ -2090,8 +2134,8 @@ arraym_{{funcname}}__foldr(
 
 {{type}}
 arraym_{{funcname}}__foldr1(
-        ArrayM_{{typename}} xs,
-        {{type}} ( * f )( {{type}} x, {{type}} acc ) )
+        ArrayM_{{typename}} const xs,
+        {{type}} ( * const f )( {{type}} x, {{type}} acc ) )
 {
     ASSERT( arraym_{{funcname}}__is_valid( xs ), xs.length > 0, f != NULL );
 
@@ -2220,7 +2264,7 @@ arraym_{{funcname}}__last_infix_index_by(
 
 size_t
 arraym_{{funcname}}__infix_count_by(
-        ArrayM_{{typename}} xs,
+        ArrayM_{{typename}} const xs,
         ArrayM_{{typename}} const ys,
         bool ( * const eq )( {{type}} x, {{type}} y ) )
 {
@@ -2258,6 +2302,45 @@ arraym_{{funcname}}__elem_index_by(
 
     return arrayc_{{funcname}}__elem_index_by(
                arrayc_{{funcname}}__view_arraym( xs ), y, eq );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__elem_ptr_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    Maybe_size const mi = arraym_{{funcname}}__elem_index_by( xs, y, eq );
+    return mi.nothing ? NULL : arraym_{{funcname}}__getp( xs, mi.value );
+}
+
+
+Maybe_size
+arraym_{{funcname}}__elem_last_index_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    return arrayc_{{funcname}}__elem_last_index_by(
+               arrayc_{{funcname}}__view_arraym( xs ), y, eq );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__elem_last_ptr_by(
+        ArrayM_{{typename}} const xs,
+        {{type}} const y,
+        bool ( * const eq )( {{type}} x, {{type}} y ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), eq != NULL );
+
+    Maybe_size const mi = arraym_{{funcname}}__elem_last_index_by( xs, y, eq );
+    return mi.nothing ? NULL : arraym_{{funcname}}__getp( xs, mi.value );
 }
 
 
@@ -2519,6 +2602,33 @@ arrayc_{{funcname}}__elem_index(
 }
 
 
+{{type}} const *
+arrayc_{{funcname}}__elem_ptr(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arrayc_{{funcname}}__elem_ptr_by( xs, x, equalf );
+}
+
+
+Maybe_size
+arrayc_{{funcname}}__elem_last_index(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arrayc_{{funcname}}__elem_last_index_by( xs, x, equalf );
+}
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_last_ptr(
+        ArrayC_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arrayc_{{funcname}}__elem_last_ptr_by( xs, x, equalf );
+}
+
+
 size_t
 arrayc_{{funcname}}__elem_count(
         ArrayC_{{typename}} const xs,
@@ -2643,6 +2753,33 @@ arraym_{{funcname}}__elem_index(
         {{type}} const x )
 {
     return arraym_{{funcname}}__elem_index_by( xs, x, equalf );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__elem_ptr(
+        ArrayM_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arraym_{{funcname}}__elem_ptr_by( xs, x, equalf );
+}
+
+
+Maybe_size
+arraym_{{funcname}}__elem_last_index(
+        ArrayM_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arraym_{{funcname}}__elem_last_index_by( xs, x, equalf );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__elem_last_ptr(
+        ArrayM_{{typename}} const xs,
+        {{type}} const x )
+{
+    return arraym_{{funcname}}__elem_last_ptr_by( xs, x, equalf );
 }
 
 

@@ -493,6 +493,27 @@ arrayc_{{funcname}}__elem_index_by(
         bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
+{{type}} const *
+arrayc_{{funcname}}__elem_ptr_by(
+        ArrayC_{{typename}} xs,
+        {{type}} y,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+
+
+Maybe_size
+arrayc_{{funcname}}__elem_last_index_by(
+        ArrayC_{{typename}} xs,
+        {{type}} y,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_last_ptr_by(
+        ArrayC_{{typename}} xs,
+        {{type}} y,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+
+
 size_t
 arrayc_{{funcname}}__elem_count_by(
         ArrayC_{{typename}} xs,
@@ -1101,6 +1122,27 @@ arraym_{{funcname}}__elem_index_by(
         bool ( * eq )( {{type}} x, {{type}} y ) );
 
 
+{{type}} *
+arraym_{{funcname}}__elem_ptr_by(
+        ArrayM_{{typename}} xs,
+        {{type}} y,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+
+
+Maybe_size
+arraym_{{funcname}}__elem_last_index_by(
+        ArrayM_{{typename}} xs,
+        {{type}} y,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+
+
+{{type}} *
+arraym_{{funcname}}__elem_last_ptr_by(
+        ArrayM_{{typename}} xs,
+        {{type}} y,
+        bool ( * eq )( {{type}} x, {{type}} y ) );
+
+
 size_t
 arraym_{{funcname}}__elem_count_by(
         ArrayM_{{typename}} xs,
@@ -1256,6 +1298,24 @@ arrayc_{{funcname}}__elem_index(
         {{type}} );
 
 
+{{type}} const *
+arrayc_{{funcname}}__elem_ptr(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
+Maybe_size
+arrayc_{{funcname}}__elem_last_index(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
+{{type}} const *
+arrayc_{{funcname}}__elem_last_ptr(
+        ArrayC_{{typename}},
+        {{type}} );
+
+
 size_t
 arrayc_{{funcname}}__elem_count(
         ArrayC_{{typename}},
@@ -1332,6 +1392,24 @@ arraym_{{funcname}}__elem(
 
 Maybe_size
 arraym_{{funcname}}__elem_index(
+        ArrayM_{{typename}},
+        {{type}} );
+
+
+{{type}} *
+arraym_{{funcname}}__elem_ptr(
+        ArrayM_{{typename}},
+        {{type}} );
+
+
+Maybe_size
+arraym_{{funcname}}__elem_last_index(
+        ArrayM_{{typename}},
+        {{type}} );
+
+
+{{type}} *
+arraym_{{funcname}}__elem_last_ptr(
         ArrayM_{{typename}},
         {{type}} );
 
