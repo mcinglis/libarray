@@ -2470,15 +2470,13 @@ arraym_{{funcname}}__eachp_(
 
 
 
-{% macro typeclass_header(name) -%}
-///////////////////////////////////
-/// TYPECLASS: {{name}}
-///////////////////////////////////
-{%- endmacro %}
 
 {% macro typeclass(name) -%}
 {% if name in typeclasses %}
-{{ typeclass_header(name) }}
+///////////////////////////////////
+/// TYPECLASS: {{name}}
+///////////////////////////////////
+
 {{ caller() }}
 {% endif %}
 {%- endmacro %}
@@ -2816,23 +2814,17 @@ arraym_{{funcname}}__replaced(
 }
 
 
-{% endcall %}
-
-
-{% call typeclass('NUM') %}
-
-
-#include <string.h>
+{% call typeclass('NULL') %}
 
 
 static
 size_t
-strlen_null(
-        {{type}} const * const xs )
+buflen_null(
+        {{type}} const * const buf )
 {
-    if ( xs == NULL ) { return 0; }
+    if ( buf == NULL ) { return 0; }
     size_t count = 0;
-    while ( !{{funcname}}__equal( xs[ count ], {{funcname}}__zero() ) ) {
+    while ( !{{funcname}}__equal( buf[ count ], {{funcname}}__null() ) ) {
         count++;
     }
     return count;
@@ -2840,28 +2832,31 @@ strlen_null(
 
 
 ArrayC_{{typename}}
-arrayc_{{funcname}}__view_str(
-        {{type}} const * const str )
+arrayc_{{funcname}}__view_buf(
+        {{type}} const * const buf )
 {
-    return arrayc_{{funcname}}__new( str, strlen_null( str ) );
+    return arrayc_{{funcname}}__new( buf, buflen_null( buf ) );
 }
 
 
 ArrayM_{{typename}}
-arraym_{{funcname}}__view_strm(
-        {{type}} * const strm )
+arraym_{{funcname}}__view_buf(
+        {{type}} * const buf )
 {
-    return arraym_{{funcname}}__new_view( strm, strlen_null( strm ) );
+    return arraym_{{funcname}}__new_view( buf, buflen_null( buf ) );
 }
 
 
 ArrayM_{{typename}}
-arraym_{{funcname}}__copy_str(
-        {{type}} const * const str )
+arraym_{{funcname}}__copy_buf(
+        {{type}} const * const buf )
 {
-    return arraym_{{funcname}}__new( str, strlen_null( str ) );
+    return arraym_{{funcname}}__new( buf, buflen_null( buf ) );
 }
 
 
 {% endcall %}
+
+{% endcall %}
+
 

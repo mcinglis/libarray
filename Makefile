@@ -25,18 +25,18 @@ libmaybe_types := $(libarray_types) size
 libbase_types  := $(libmaybe_types)
 
 short_type       := short
-short_options    := --typeclasses BOUNDED EQ ORD ENUM NUM \
-                    --extra num_type=signed min_bound=SHRT_MIN max_bound=SHRT_MAX
+short_options    := --typeclasses NULL BOUNDED EQ ORD ENUM NUM \
+                    --extra num_type=signed
 
 uintmax_type     := uintmax_t
-uintmax_options  := --typeclasses BOUNDED EQ ORD ENUM NUM \
+uintmax_options  := --typeclasses NULL BOUNDED EQ ORD ENUM NUM \
                     --extra num_type=unsigned
 
 ptrm_int_type    := int *
-ptrm_int_options := --typeclasses EQ ORD
+ptrm_int_options := --typeclasses NULL EQ ORD ZERO
 
 size_type        := size_t
-size_options     := --typeclasses BOUNDED EQ ORD ENUM NUM \
+size_options     := --typeclasses NULL BOUNDED EQ ORD ENUM NUM \
                     --extra num_type=unsigned
 
 libbase_sources := $(foreach t,$(libbase_types),$(LIBBASE)/$t.c)

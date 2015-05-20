@@ -119,12 +119,12 @@ test_replace( void )
 
 static
 void
-test_from_str( void )
+test_from_buf( void )
 {
-    ArrayC_short const xs = arrayc_short__view_str(
+    ArrayC_short const xs = arrayc_short__view_buf(
                                 ( short [] ){ 321, 98, 32, 0 } );
     ASSERT( xs.length == 3, arrayc_short__equal_els( xs, 321, 98, 32 ) );
-    ArrayM_short ys = arraym_short__copy_str(
+    ArrayM_short ys = arraym_short__copy_buf(
                           ( short const [] ){ 11, 22, 0, 33 } );
     ASSERT( ys.length == 2, arraym_short__equal_els( ys, 11, 22 ) );
     arraym_short__free( &ys );
@@ -140,7 +140,7 @@ main( void )
     test_equal_by();            puts( "  custom equality tests passed" );
     test_logic();               puts( "  logic tests passed" );
     test_replace();             puts( "  replacement tests passed" );
-    test_from_str();            puts( "  from-str tests passed" );
+    test_from_buf();            puts( "  from-buf tests passed" );
     puts( "All unit tests passed!" );
 }
 

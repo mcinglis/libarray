@@ -24,7 +24,7 @@
           "repo": [ "https://bitbucket.org/mcinglis/libbase.git",
                     "https://github.com/mcinglis/libbase.git",
                     "https://gitorious.org/mcinglis/libbase.git" ],
-          "tag":  "v1.*"
+          "tag":  "v2.*"
         }
     ],
     "commands": {

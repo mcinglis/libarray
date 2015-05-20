@@ -1216,15 +1216,12 @@ arraym_{{funcname}}__eachp_(
 
 
 
-{% macro typeclass_header(name) -%}
+{% macro typeclass(name) -%}
+{% if name in typeclasses %}
 ///////////////////////////////////
 /// TYPECLASS: {{name}}
 ///////////////////////////////////
-{%- endmacro %}
 
-{% macro typeclass(name) -%}
-{% if name in typeclasses %}
-{{ typeclass_header(name) }}
 {{ caller() }}
 {% endif %}
 {%- endmacro %}
@@ -1434,29 +1431,29 @@ arraym_{{funcname}}__replaced(
         {{type}} replacement );
 
 
-{% endcall %}
-
-
-{% call typeclass('NUM') %}
+{% call typeclass('NULL') %}
 
 
 ArrayC_{{typename}}
-arrayc_{{funcname}}__view_str(
-        {{type}} const * str );
-// Returns a constant array representation of the buffer `str` terminated by
+arrayc_{{funcname}}__view_buf(
+        {{type}} const * buf );
+// Returns a constant array representation of the buffer `buf` terminated by
 // `{{funcname}}__zero()`.
 
 
 ArrayM_{{typename}}
-arraym_{{funcname}}__view_strm(
+arraym_{{funcname}}__view_buf(
         {{type}} * strm );
-// Returns a mutable array representation of the buffer `strm` terminated by
+// Returns a mutable array representation of the buffer `buf` terminated by
 // `{{funcname}}__zero()`.
 
 
 ArrayM_{{typename}}
-arraym_{{funcname}}__copy_str(
-        {{type}} const * const str );
+arraym_{{funcname}}__copy_buf(
+        {{type}} const * const buf );
+
+
+{% endcall %}
 
 
 {% endcall %}
