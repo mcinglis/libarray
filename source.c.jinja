@@ -171,7 +171,10 @@ arrayc_{{funcname}}__memcpy_to(
 {
     ASSERT( arrayc_{{funcname}}__is_valid( from ), to != NULL );
 
-    memcpy( to, from.e, MIN( to_size, arrayc_{{funcname}}__size( from ) ) );
+    if ( to != NULL && from.e != NULL ) {
+        memcpy( to, from.e,
+                MIN( to_size, arrayc_{{funcname}}__size( from ) ) );
+    }
 }
 
 
@@ -1359,7 +1362,10 @@ arraym_{{funcname}}__memcpy_from(
 {
     ASSERT( arraym_{{funcname}}__is_valid( to ), from != NULL );
 
-    memcpy( to.e, from, MIN( from_size, arraym_{{funcname}}__size( to ) ) );
+    if ( to.e != NULL && from != NULL ) {
+        memcpy( to.e, from,
+                MIN( from_size, arraym_{{funcname}}__size( to ) ) );
+    }
 }
 
 
@@ -1625,7 +1631,9 @@ arraym_{{funcname}}__memset(
 {
     ASSERT( arraym_{{funcname}}__is_valid( xs ) );
 
-    memset( xs.e, byte, arraym_{{funcname}}__size( xs ) );
+    if ( xs.e != NULL ) {
+        memset( xs.e, byte, arraym_{{funcname}}__size( xs ) );
+    }
 }
 
 
