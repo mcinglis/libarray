@@ -124,13 +124,22 @@ static
 void
 test_null( void )
 {
-    ArrayC_short const xs = arrayc_short__view_buf(
+    ArrayC_short const a = arrayc_short__view_buf(
                                 ( short [] ){ 321, 98, 32, 0 } );
-    ASSERT( xs.length == 3, arrayc_short__equal_els( xs, 321, 98, 32 ) );
-    ArrayM_short ys = arraym_short__copy_buf(
+    ASSERT( a.length == 3, arrayc_short__equal_els( a, 321, 98, 32 ) );
+
+    ArrayM_short b = arraym_short__copy_buf(
                           ( short [] ){ 11, 22, 0, 33 } );
-    ASSERT( ys.length == 2, arraym_short__equal_els( ys, 11, 22 ) );
-    arraym_short__free( &ys );
+    ASSERT( b.length == 2, arraym_short__equal_els( b, 11, 22 ) );
+    arraym_short__free( &b );
+
+    ArrayC_short const c = arrayc_short__view_buf0( ( short[] ){ 1, 2, 0 } );
+    ASSERT( c.length == 3, arrayc_short__equal_els( c, 1, 2, 0 ) );
+
+    ArrayM_short d = arraym_short__copy_buf0(
+                          ( short [] ){ 11, 22, 0, 33 } );
+    ASSERT( d.length == 3, arraym_short__equal_els( d, 11, 22, 0 ) );
+    arraym_short__free( &d );
 }
 
 

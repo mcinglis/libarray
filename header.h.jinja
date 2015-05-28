@@ -1214,6 +1214,8 @@ arraym_{{funcname}}__eachp_(
         ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
 
 
+
+
 {% if 'EQ' in typeclasses %}
 
 
@@ -1418,6 +1420,11 @@ arraym_{{funcname}}__replaced(
         {{type}} replacement );
 
 
+{% endif %} {# EQ #}
+
+
+
+
 {% if 'NULL' in typeclasses %}
 
 
@@ -1433,18 +1440,6 @@ arrayc_{{funcname}}__view_buf0(
         {{type}} const * buf );
 // Returns a constant array representation of the buffer `buf` terminated by
 // `{{funcname}}__null()`, including the null terminator.
-
-
-bool
-arrayc_{{funcname}}__equal_buf(
-        ArrayC_{{typename}},
-        {{type}} const * buf );
-
-
-bool
-arrayc_{{funcname}}__equal_buf0(
-        ArrayC_{{typename}},
-        {{type}} const * buf );
 
 
 ArrayM_{{typename}}
@@ -1471,6 +1466,21 @@ arraym_{{funcname}}__copy_buf0(
         {{type}} const * const buf );
 
 
+{% if 'EQ' in typeclasses %}
+
+
+bool
+arrayc_{{funcname}}__equal_buf(
+        ArrayC_{{typename}},
+        {{type}} const * buf );
+
+
+bool
+arrayc_{{funcname}}__equal_buf0(
+        ArrayC_{{typename}},
+        {{type}} const * buf );
+
+
 bool
 arraym_{{funcname}}__equal_buf(
         ArrayM_{{typename}},
@@ -1483,20 +1493,26 @@ arraym_{{funcname}}__equal_buf0(
         {{type}} const * buf );
 
 
+{% endif %} {# EQ #}
 {% endif %} {# NULL #}
+
+
 
 
 {% if 'CHAR' in typeclasses %}
 
 
-bool
-arrayc_{{funcname}}__equal_str(
-        ArrayC_{{typename}},
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str(
         char const * str );
 
 
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_str(
+{% if 'EQ' in typeclasses %}
+
+
+bool
+arrayc_{{funcname}}__equal_str(
+        ArrayC_{{typename}},
         char const * str );
 
 
@@ -1506,8 +1522,10 @@ arraym_{{funcname}}__equal_str(
         char const * str );
 
 
-{% endif %} {# CHAR #}
 {% endif %} {# EQ #}
+{% endif %} {# CHAR #}
+
+
 
 
 #endif // ifndef LIBARRAY_ARRAY_{{macroname}}_H

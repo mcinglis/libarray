@@ -2808,19 +2808,22 @@ arraym_{{funcname}}__replaced(
 }
 
 
+{% endif %} {# EQ #}
+
+
 {% if 'NULL' in typeclasses %}
 
 
 static
 size_t
-bufsize(
+buflen(
         {{type}} const * const buf )
 {
     if ( buf == NULL ) {
         return 0;
     } else {
         size_t count = 0;
-        while ( !{{funcname}}__equal( buf[ count ], {{funcname}}__null() ) ) {
+        while ( !{{funcname}}__is_null( buf[ count ] ) ) {
             count++;
             ASSERT( count < SIZE_MAX );
         }
@@ -2833,7 +2836,7 @@ ArrayC_{{typename}}
 arrayc_{{funcname}}__view_buf(
         {{type}} const * const buf )
 {
-    return arrayc_{{funcname}}__new( buf, bufsize( buf ) );
+    return arrayc_{{funcname}}__new( buf, buflen( buf ) );
 }
 
 
@@ -2841,29 +2844,9 @@ ArrayC_{{typename}}
 arrayc_{{funcname}}__view_buf0(
         {{type}} const * const buf )
 {
-    size_t const sz = bufsize( buf );
+    size_t const sz = buflen( buf );
     ASSERT( sz < SIZE_MAX );
     return arrayc_{{funcname}}__new( buf, sz + 1 );
-}
-
-
-bool
-arrayc_{{funcname}}__equal_buf(
-        ArrayC_{{typename}} const xs,
-        {{type}} const * const buf )
-{
-    return arrayc_{{funcname}}__equal(
-               xs, arrayc_{{funcname}}__view_buf( buf ) );
-}
-
-
-bool
-arrayc_{{funcname}}__equal_buf0(
-        ArrayC_{{typename}} const xs,
-        {{type}} const * const buf )
-{
-    return arrayc_{{funcname}}__equal(
-               xs, arrayc_{{funcname}}__view_buf0( buf ) );
 }
 
 
@@ -2871,7 +2854,7 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__view_buf(
         {{type}} * const buf )
 {
-    return arraym_{{funcname}}__new_view( buf, bufsize( buf ) );
+    return arraym_{{funcname}}__new_view( buf, buflen( buf ) );
 }
 
 
@@ -2879,7 +2862,7 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__view_buf0(
         {{type}} * const buf )
 {
-    size_t const sz = bufsize( buf );
+    size_t const sz = buflen( buf );
     ASSERT( sz < SIZE_MAX );
     return arraym_{{funcname}}__new_view( buf, sz + 1 );
 }
@@ -2903,6 +2886,29 @@ arraym_{{funcname}}__copy_buf0(
 }
 
 
+{% if 'EQ' in typeclasses %}
+
+
+bool
+arrayc_{{funcname}}__equal_buf(
+        ArrayC_{{typename}} const xs,
+        {{type}} const * const buf )
+{
+    return arrayc_{{funcname}}__equal(
+               xs, arrayc_{{funcname}}__view_buf( buf ) );
+}
+
+
+bool
+arrayc_{{funcname}}__equal_buf0(
+        ArrayC_{{typename}} const xs,
+        {{type}} const * const buf )
+{
+    return arrayc_{{funcname}}__equal(
+               xs, arrayc_{{funcname}}__view_buf0( buf ) );
+}
+
+
 bool
 arraym_{{funcname}}__equal_buf(
         ArrayM_{{typename}} const xs,
@@ -2922,6 +2928,8 @@ arraym_{{funcname}}__equal_buf0(
                arrayc_{{funcname}}__view_arraym( xs ), buf );
 }
 
+
+{% endif %} {# EQ #}
 
 {% endif %} {# NULL #}
 
@@ -2948,6 +2956,22 @@ strsize(
 }
 
 
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str(
+        char const * const str )
+{
+    ArrayM_{{typename}} xs = arraym_{{funcname}}__new_alloc( strsize( str ) );
+    if ( errno ) { return xs; }
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        xs.e[ i ] = {{funcname}}__from_char( str[ i ] );
+    }
+    return xs;
+}
+
+
+{% if 'EQ' in typeclasses %}
+
+
 bool
 arrayc_{{funcname}}__equal_str(
         ArrayC_{{typename}} const xs,
@@ -2958,24 +2982,11 @@ arrayc_{{funcname}}__equal_str(
         return false;
     }
     for ( size_t i = 0; i < sz; i++ ) {
-        if ( !{{funcname}}__equal( xs.e[ i ], str[ i ] ) ) {
+        if ( !{{funcname}}__equal_char( xs.e[ i ], str[ i ] ) ) {
             return false;
         }
     }
     return true;
-}
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_str(
-        char const * const str )
-{
-    ArrayM_{{typename}} xs = arraym_{{funcname}}__new_alloc( strsize( str ) );
-    if ( errno ) { return xs; }
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        xs.e[ i ] = str[ i ];
-    }
-    return xs;
 }
 
 
@@ -2989,8 +3000,8 @@ arraym_{{funcname}}__equal_str(
 }
 
 
-{% endif %} {# CHAR #}
-
-
 {% endif %} {# EQ #}
+
+
+{% endif %} {# CHAR #}
 
