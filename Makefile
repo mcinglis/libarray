@@ -20,9 +20,17 @@ CFLAGS ?= -std=c11 -g \
 TPLRENDER ?= $(DEPS_DIR)/tplrender/tplrender
 
 
-libarray_types := short uintmax ptrm_int
+libarray_types := char uchar short uintmax ptrm_int
 libmaybe_types := $(libarray_types) size
 libbase_types  := $(libmaybe_types)
+
+char_type        := char
+char_options     := --typeclasses NULL BOUNDED EQ ORD ENUM NUM CHAR \
+                    --extra num_type=signed
+
+uchar_type       := uchar
+uchar_options    := --typeclasses NULL BOUNDED EQ ORD ENUM NUM CHAR \
+                    --extra num_type=unsigned
 
 short_type       := short
 short_options    := --typeclasses NULL BOUNDED EQ ORD ENUM NUM \

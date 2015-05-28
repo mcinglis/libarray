@@ -2,9 +2,12 @@
 #include <stdio.h>
 
 #include <libmacro/assert.h>
+#include <libmacro/debug.h>
 #include <libbase/short.h>
 #include <libbase/uintmax.h>
 
+#include "../array_char.h"
+#include "../array_uchar.h"
 #include "../array_short.h"
 #include "../array_uintmax.h"
 #include "../array_ptrm_int.h"
@@ -119,15 +122,72 @@ test_replace( void )
 
 static
 void
-test_from_buf( void )
+test_null( void )
 {
     ArrayC_short const xs = arrayc_short__view_buf(
                                 ( short [] ){ 321, 98, 32, 0 } );
     ASSERT( xs.length == 3, arrayc_short__equal_els( xs, 321, 98, 32 ) );
     ArrayM_short ys = arraym_short__copy_buf(
-                          ( short const [] ){ 11, 22, 0, 33 } );
+                          ( short [] ){ 11, 22, 0, 33 } );
     ASSERT( ys.length == 2, arraym_short__equal_els( ys, 11, 22 ) );
     arraym_short__free( &ys );
+}
+
+
+static
+void
+test_char( void )
+{
+    {
+        ArrayC_char const a = arrayc_char__view_buf0( "hello, world" );
+        ASSERT( arrayc_char__equal_str( a, "hello, world" ) );
+
+        ArrayC_char const b = ARRAY_CHAR( 'x', 'y', 'z', '\0' );
+        ASSERT( arrayc_char__equal_str( b, "xyz" ) );
+
+        ArrayM_char c = arraym_char__copy_str( "abc" );
+        ASSERT( arraym_char__equal_els( c, 'a', 'b', 'c', '\0' ),
+                arraym_char__equal_str( c, "abc" ) );
+        arraym_char__free( &c );
+
+        ArrayM_char d = arraym_char__copy_str( NULL );
+        ASSERT( arraym_char__is_empty( d ) );
+        arraym_char__free( &d );
+
+        ArrayM_char e = arraym_char__copy_str( "" );
+        ASSERT( arraym_char__equal_els( e, '\0' ),
+                arraym_char__equal_str( e, "" ) );
+        arraym_char__free( &e );
+
+        ArrayC_char const f = ARRAY_CHAR( 'h', 'a', 'h', 'a' );
+        ASSERT( !arrayc_char__equal_str( f, "haha" ) );
+    }
+
+    {
+        ArrayC_uchar const a = arrayc_uchar__view_buf0(
+                                   ( uchar[] ){ "hello, world" } );
+        ASSERT( arrayc_uchar__equal_str( a, "hello, world" ) );
+
+        ArrayC_uchar const b = ARRAY_UCHAR( 'x', 'y', 'z', '\0' );
+        ASSERT( arrayc_uchar__equal_str( b, "xyz" ) );
+
+        ArrayM_uchar c = arraym_uchar__copy_str( "abc" );
+        ASSERT( arraym_uchar__equal_els( c, 'a', 'b', 'c', '\0' ),
+                arraym_uchar__equal_str( c, "abc" ) );
+        arraym_uchar__free( &c );
+
+        ArrayM_uchar d = arraym_uchar__copy_str( NULL );
+        ASSERT( arraym_uchar__is_empty( d ) );
+        arraym_uchar__free( &d );
+
+        ArrayM_uchar e = arraym_uchar__copy_str( "" );
+        ASSERT( arraym_uchar__equal_els( e, '\0' ),
+                arraym_uchar__equal_str( e, "" ) );
+        arraym_uchar__free( &e );
+
+        ArrayC_uchar const f = ARRAY_UCHAR( 'h', 'a', 'h', 'a' );
+        ASSERT( !arrayc_uchar__equal_str( f, "haha" ) );
+    }
 }
 
 
@@ -140,7 +200,8 @@ main( void )
     test_equal_by();            puts( "  custom equality tests passed" );
     test_logic();               puts( "  logic tests passed" );
     test_replace();             puts( "  replacement tests passed" );
-    test_from_buf();            puts( "  from-buf tests passed" );
+    test_null();                puts( "  NULL typeclass tests passed" );
+    test_char();                puts( "  CHAR typeclass tests passed" );
     puts( "All unit tests passed!" );
 }
 

@@ -1214,20 +1214,7 @@ arraym_{{funcname}}__eachp_(
         ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
 
 
-
-
-{% macro typeclass(name) -%}
-{% if name in typeclasses %}
-///////////////////////////////////
-/// TYPECLASS: {{name}}
-///////////////////////////////////
-
-{{ caller() }}
-{% endif %}
-{%- endmacro %}
-
-
-{% call typeclass('EQ') %}
+{% if 'EQ' in typeclasses %}
 
 
 bool
@@ -1431,21 +1418,47 @@ arraym_{{funcname}}__replaced(
         {{type}} replacement );
 
 
-{% call typeclass('NULL') %}
+{% if 'NULL' in typeclasses %}
 
 
 ArrayC_{{typename}}
 arrayc_{{funcname}}__view_buf(
         {{type}} const * buf );
 // Returns a constant array representation of the buffer `buf` terminated by
-// `{{funcname}}__zero()`.
+// `{{funcname}}__null()`, not including that null terminator.
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__view_buf0(
+        {{type}} const * buf );
+// Returns a constant array representation of the buffer `buf` terminated by
+// `{{funcname}}__null()`, including the null terminator.
+
+
+bool
+arrayc_{{funcname}}__equal_buf(
+        ArrayC_{{typename}},
+        {{type}} const * buf );
+
+
+bool
+arrayc_{{funcname}}__equal_buf0(
+        ArrayC_{{typename}},
+        {{type}} const * buf );
 
 
 ArrayM_{{typename}}
 arraym_{{funcname}}__view_buf(
-        {{type}} * strm );
+        {{type}} * buf );
 // Returns a mutable array representation of the buffer `buf` terminated by
-// `{{funcname}}__zero()`.
+// `{{funcname}}__null()`, not including the null terminator.
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__view_buf0(
+        {{type}} * buf );
+// Returns a mutable array representation of the buffer `buf` terminated by
+// `{{funcname}}__null()`, not including the null terminator.
 
 
 ArrayM_{{typename}}
@@ -1453,10 +1466,48 @@ arraym_{{funcname}}__copy_buf(
         {{type}} const * const buf );
 
 
-{% endcall %}
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_buf0(
+        {{type}} const * const buf );
 
 
-{% endcall %}
+bool
+arraym_{{funcname}}__equal_buf(
+        ArrayM_{{typename}},
+        {{type}} const * buf );
+
+
+bool
+arraym_{{funcname}}__equal_buf0(
+        ArrayM_{{typename}},
+        {{type}} const * buf );
+
+
+{% endif %} {# NULL #}
+
+
+{% if 'CHAR' in typeclasses %}
+
+
+bool
+arrayc_{{funcname}}__equal_str(
+        ArrayC_{{typename}},
+        char const * str );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str(
+        char const * str );
+
+
+bool
+arraym_{{funcname}}__equal_str(
+        ArrayM_{{typename}},
+        char const * str );
+
+
+{% endif %} {# CHAR #}
+{% endif %} {# EQ #}
 
 
 #endif // ifndef LIBARRAY_ARRAY_{{macroname}}_H

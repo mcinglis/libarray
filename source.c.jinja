@@ -1344,8 +1344,8 @@ arraym_{{funcname}}__realloc(
 {
     ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
 
+    errno = 0;
     if ( new_length != xs->length ) {
-        errno = 0;
         {{type}} * const new_e = reallocn( xs->e, new_length,
                                            sizeof ( {{type}} ) );
         if ( errno ) { return; }
@@ -2476,21 +2476,7 @@ arraym_{{funcname}}__eachp_(
 }
 
 
-
-
-
-{% macro typeclass(name) -%}
-{% if name in typeclasses %}
-///////////////////////////////////
-/// TYPECLASS: {{name}}
-///////////////////////////////////
-
-{{ caller() }}
-{% endif %}
-{%- endmacro %}
-
-
-{% call typeclass('EQ') %}
+{% if 'EQ' in typeclasses %}
 
 
 static
@@ -2822,20 +2808,24 @@ arraym_{{funcname}}__replaced(
 }
 
 
-{% call typeclass('NULL') %}
+{% if 'NULL' in typeclasses %}
 
 
 static
 size_t
-buflen_null(
+bufsize(
         {{type}} const * const buf )
 {
-    if ( buf == NULL ) { return 0; }
-    size_t count = 0;
-    while ( !{{funcname}}__equal( buf[ count ], {{funcname}}__null() ) ) {
-        count++;
+    if ( buf == NULL ) {
+        return 0;
+    } else {
+        size_t count = 0;
+        while ( !{{funcname}}__equal( buf[ count ], {{funcname}}__null() ) ) {
+            count++;
+            ASSERT( count < SIZE_MAX );
+        }
+        return count;
     }
-    return count;
 }
 
 
@@ -2843,7 +2833,37 @@ ArrayC_{{typename}}
 arrayc_{{funcname}}__view_buf(
         {{type}} const * const buf )
 {
-    return arrayc_{{funcname}}__new( buf, buflen_null( buf ) );
+    return arrayc_{{funcname}}__new( buf, bufsize( buf ) );
+}
+
+
+ArrayC_{{typename}}
+arrayc_{{funcname}}__view_buf0(
+        {{type}} const * const buf )
+{
+    size_t const sz = bufsize( buf );
+    ASSERT( sz < SIZE_MAX );
+    return arrayc_{{funcname}}__new( buf, sz + 1 );
+}
+
+
+bool
+arrayc_{{funcname}}__equal_buf(
+        ArrayC_{{typename}} const xs,
+        {{type}} const * const buf )
+{
+    return arrayc_{{funcname}}__equal(
+               xs, arrayc_{{funcname}}__view_buf( buf ) );
+}
+
+
+bool
+arrayc_{{funcname}}__equal_buf0(
+        ArrayC_{{typename}} const xs,
+        {{type}} const * const buf )
+{
+    return arrayc_{{funcname}}__equal(
+               xs, arrayc_{{funcname}}__view_buf0( buf ) );
 }
 
 
@@ -2851,7 +2871,17 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__view_buf(
         {{type}} * const buf )
 {
-    return arraym_{{funcname}}__new_view( buf, buflen_null( buf ) );
+    return arraym_{{funcname}}__new_view( buf, bufsize( buf ) );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__view_buf0(
+        {{type}} * const buf )
+{
+    size_t const sz = bufsize( buf );
+    ASSERT( sz < SIZE_MAX );
+    return arraym_{{funcname}}__new_view( buf, sz + 1 );
 }
 
 
@@ -2859,12 +2889,108 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__copy_buf(
         {{type}} const * const buf )
 {
-    return arraym_{{funcname}}__new( buf, buflen_null( buf ) );
+    return arraym_{{funcname}}__copy_arrayc(
+               arrayc_{{funcname}}__view_buf( buf ) );
 }
 
 
-{% endcall %}
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_buf0(
+        {{type}} const * const buf )
+{
+    return arraym_{{funcname}}__copy_arrayc(
+               arrayc_{{funcname}}__view_buf0( buf ) );
+}
 
-{% endcall %}
 
+bool
+arraym_{{funcname}}__equal_buf(
+        ArrayM_{{typename}} const xs,
+        {{type}} const * const buf )
+{
+    return arrayc_{{funcname}}__equal_buf(
+               arrayc_{{funcname}}__view_arraym( xs ), buf );
+}
+
+
+bool
+arraym_{{funcname}}__equal_buf0(
+        ArrayM_{{typename}} const xs,
+        {{type}} const * const buf )
+{
+    return arrayc_{{funcname}}__equal_buf0(
+               arrayc_{{funcname}}__view_arraym( xs ), buf );
+}
+
+
+{% endif %} {# NULL #}
+
+
+{% if 'CHAR' in typeclasses %}
+
+
+#include <limits.h>
+#include <string.h>
+
+
+static
+size_t
+strsize(
+        char const * const str )
+{
+    if ( str == NULL ) {
+        return 0;
+    } else {
+        size_t const len = strlen( str );
+        ASSERT( len < SIZE_MAX );
+        return len + 1;
+    }
+}
+
+
+bool
+arrayc_{{funcname}}__equal_str(
+        ArrayC_{{typename}} const xs,
+        char const * const str )
+{
+    size_t const sz = strsize( str );
+    if ( sz != xs.length ) {
+        return false;
+    }
+    for ( size_t i = 0; i < sz; i++ ) {
+        if ( !{{funcname}}__equal( xs.e[ i ], str[ i ] ) ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str(
+        char const * const str )
+{
+    ArrayM_{{typename}} xs = arraym_{{funcname}}__new_alloc( strsize( str ) );
+    if ( errno ) { return xs; }
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        xs.e[ i ] = str[ i ];
+    }
+    return xs;
+}
+
+
+bool
+arraym_{{funcname}}__equal_str(
+        ArrayM_{{typename}} const xs,
+        char const * const str )
+{
+    return arrayc_{{funcname}}__equal_str(
+               arrayc_{{funcname}}__view_arraym( xs ), str );
+}
+
+
+{% endif %} {# CHAR #}
+
+
+{% endif %} {# EQ #}
 
