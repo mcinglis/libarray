@@ -140,6 +140,15 @@ test_null( void )
                           ( short [] ){ 11, 22, 0, 33 } );
     ASSERT( d.length == 3, arraym_short__equal_els( d, 11, 22, 0 ) );
     arraym_short__free( &d );
+
+    ArrayC_char const e = arrayc_char__view_buf0( "something" );
+    ASSERT( arrayc_char__last_is_null( e ), !arrayc_char__all_null( e ) );
+
+    ArrayC_char const f = arrayc_char__view_buf( "blah blah" );
+    ASSERT( !arrayc_char__last_is_null( f ), !arrayc_char__all_null( f ) );
+
+    ArrayC_short const g = ARRAY_SHORT( 0, 0, 0, 0 );
+    ASSERT( arrayc_short__last_is_null( g ), arrayc_short__all_null( g ) );
 }
 
 

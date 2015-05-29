@@ -2850,6 +2850,27 @@ arrayc_{{funcname}}__view_buf0(
 }
 
 
+bool
+arrayc_{{funcname}}__last_is_null(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    {{type}} const * const lastp = arrayc_{{funcname}}__lastp( xs );
+    return lastp != NULL && {{funcname}}__is_null( *lastp );
+}
+
+
+bool
+arrayc_{{funcname}}__all_null(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__all( xs, {{funcname}}__is_null );
+}
+
+
 ArrayM_{{typename}}
 arraym_{{funcname}}__view_buf(
         {{type}} * const buf )
@@ -2883,6 +2904,28 @@ arraym_{{funcname}}__copy_buf0(
 {
     return arraym_{{funcname}}__copy_arrayc(
                arrayc_{{funcname}}__view_buf0( buf ) );
+}
+
+
+bool
+arraym_{{funcname}}__last_is_null(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__last_is_null(
+               arrayc_{{funcname}}__view_arraym( xs ) );
+}
+
+
+bool
+arraym_{{funcname}}__all_null(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__all_null(
+               arrayc_{{funcname}}__view_arraym( xs ) );
 }
 
 
@@ -3001,7 +3044,6 @@ arraym_{{funcname}}__equal_str(
 
 
 {% endif %} {# EQ #}
-
 
 {% endif %} {# CHAR #}
 

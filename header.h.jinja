@@ -1442,6 +1442,19 @@ arrayc_{{funcname}}__view_buf0(
 // `{{funcname}}__null()`, including the null terminator.
 
 
+bool
+arrayc_{{funcname}}__last_is_null(
+        ArrayC_{{typename}} const xs );
+// Returns the boolean that `xs` is non-empty, and for the last element in
+// `xs`, `x`, `{{funcname}}__is_null( x )`.
+
+
+bool
+arrayc_{{funcname}}__all_null(
+        ArrayC_{{typename}} const xs );
+// Equivalent to `arrayc_{{funcname}}__all( xs, {{funcname}}__is_null )`.
+
+
 ArrayM_{{typename}}
 arraym_{{funcname}}__view_buf(
         {{type}} * buf );
@@ -1464,6 +1477,21 @@ arraym_{{funcname}}__copy_buf(
 ArrayM_{{typename}}
 arraym_{{funcname}}__copy_buf0(
         {{type}} const * const buf );
+
+
+bool
+arraym_{{funcname}}__last_is_null(
+        ArrayM_{{typename}} const xs );
+// Returns the boolean that `xs` is non-empty, and for the last element in
+// `xs`, `x`, `{{funcname}}__is_null( x )`.
+
+
+bool
+arraym_{{funcname}}__all_null(
+        ArrayM_{{typename}} const xs );
+// Equivalent to `arraym_{{funcname}}__all( xs, {{funcname}}__is_null )`.
+
+
 
 
 {% if 'EQ' in typeclasses %}
