@@ -1559,6 +1559,11 @@ arraym_{{funcname}}__copy_str(
         char const * str );
 
 
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str0(
+        char const * str );
+
+
 {% if 'EQ' in typeclasses %}
 
 
@@ -1569,7 +1574,19 @@ arrayc_{{funcname}}__equal_str(
 
 
 bool
+arrayc_{{funcname}}__equal_str0(
+        ArrayC_{{typename}},
+        char const * str );
+
+
+bool
 arraym_{{funcname}}__equal_str(
+        ArrayM_{{typename}},
+        char const * str );
+
+
+bool
+arraym_{{funcname}}__equal_str0(
         ArrayM_{{typename}},
         char const * str );
 

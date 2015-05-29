@@ -156,15 +156,16 @@ static
 void
 test_char( void )
 {
+    // test char type with non-null-terminator functions:
     {
-        ArrayC_char const a = arrayc_char__view_buf0( "hello, world" );
+        ArrayC_char const a = arrayc_char__view_buf( "hello, world" );
         ASSERT( arrayc_char__equal_str( a, "hello, world" ) );
 
-        ArrayC_char const b = ARRAY_CHAR( 'x', 'y', 'z', '\0' );
+        ArrayC_char const b = ARRAY_CHAR( 'x', 'y', 'z' );
         ASSERT( arrayc_char__equal_str( b, "xyz" ) );
 
         ArrayM_char c = arraym_char__copy_str( "abc" );
-        ASSERT( arraym_char__equal_els( c, 'a', 'b', 'c', '\0' ),
+        ASSERT( arraym_char__equal_els( c, 'a', 'b', 'c' ),
                 arraym_char__equal_str( c, "abc" ) );
         arraym_char__free( &c );
 
@@ -173,24 +174,52 @@ test_char( void )
         arraym_char__free( &d );
 
         ArrayM_char e = arraym_char__copy_str( "" );
-        ASSERT( arraym_char__equal_els( e, '\0' ),
-                arraym_char__equal_str( e, "" ) );
+        ASSERT( arraym_char__is_empty( e ) );
         arraym_char__free( &e );
 
         ArrayC_char const f = ARRAY_CHAR( 'h', 'a', 'h', 'a' );
-        ASSERT( !arrayc_char__equal_str( f, "haha" ) );
+        ASSERT( arrayc_char__equal_str( f, "haha" ) );
     }
 
+    // test char with null-terminator functions:
     {
-        ArrayC_uchar const a = arrayc_uchar__view_buf0(
+        ArrayC_char const a = arrayc_char__view_buf0( "hello, world" );
+        ASSERT( !arrayc_char__equal_str( a, "hello, world" ),
+                arrayc_char__equal_str0( a, "hello, world" ) );
+
+        ArrayC_char const b = ARRAY_CHAR( 'x', 'y', 'z', '\0' );
+        ASSERT( !arrayc_char__equal_str( b, "xyz" ),
+                arrayc_char__equal_str0( b, "xyz" ),
+                !arrayc_char__equal_str0( b, "xy" ),
+                !arrayc_char__equal_str0( b, "xyzz" ) );
+
+        ArrayM_char c = arraym_char__copy_str0( "abc" );
+        ASSERT( arraym_char__equal_els( c, 'a', 'b', 'c', '\0' ),
+                arraym_char__equal_str0( c, "abc" ) );
+        arraym_char__free( &c );
+
+        ArrayM_char d = arraym_char__copy_str0( NULL );
+        ASSERT( arraym_char__is_empty( d ) );
+        arraym_char__free( &d );
+
+        ArrayM_char e = arraym_char__copy_str0( "" );
+        ASSERT( arraym_char__equal_els( e, '\0' ),
+                !arraym_char__equal_str( e, "" ),
+                arraym_char__equal_str0( e, "" ) );
+        arraym_char__free( &e );
+    }
+
+    // test uchar with non-null-terminator functions:
+    {
+        ArrayC_uchar const a = arrayc_uchar__view_buf(
                                    ( uchar[] ){ "hello, world" } );
         ASSERT( arrayc_uchar__equal_str( a, "hello, world" ) );
 
-        ArrayC_uchar const b = ARRAY_UCHAR( 'x', 'y', 'z', '\0' );
+        ArrayC_uchar const b = ARRAY_UCHAR( 'x', 'y', 'z' );
         ASSERT( arrayc_uchar__equal_str( b, "xyz" ) );
 
         ArrayM_uchar c = arraym_uchar__copy_str( "abc" );
-        ASSERT( arraym_uchar__equal_els( c, 'a', 'b', 'c', '\0' ),
+        ASSERT( arraym_uchar__equal_els( c, 'a', 'b', 'c' ),
                 arraym_uchar__equal_str( c, "abc" ) );
         arraym_uchar__free( &c );
 
@@ -199,12 +228,11 @@ test_char( void )
         arraym_uchar__free( &d );
 
         ArrayM_uchar e = arraym_uchar__copy_str( "" );
-        ASSERT( arraym_uchar__equal_els( e, '\0' ),
-                arraym_uchar__equal_str( e, "" ) );
+        ASSERT( arraym_uchar__is_empty( e ) );
         arraym_uchar__free( &e );
 
         ArrayC_uchar const f = ARRAY_UCHAR( 'h', 'a', 'h', 'a' );
-        ASSERT( !arrayc_uchar__equal_str( f, "haha" ) );
+        ASSERT( arrayc_uchar__equal_str( f, "haha" ) );
     }
 }
 

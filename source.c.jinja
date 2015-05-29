@@ -3031,22 +3031,24 @@ arraym_{{funcname}}__equal_buf0(
 {% if 'CHAR' in typeclasses %}
 
 
-#include <limits.h>
 #include <string.h>
 
 
 static
 size_t
-strsize(
+strlen_null(
         char const * const str )
 {
-    if ( str == NULL ) {
-        return 0;
-    } else {
-        size_t const len = strlen( str );
-        ASSERT( len < SIZE_MAX );
-        return len + 1;
-    }
+    return ( str == NULL ) ? 0 : strlen( str );
+}
+
+
+static
+size_t
+strsize_null(
+        char const * const str )
+{
+    return ( str == NULL ) ? 0 : ( strlen( str ) + 1 );
 }
 
 
@@ -3054,7 +3056,22 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__copy_str(
         char const * const str )
 {
-    ArrayM_{{typename}} xs = arraym_{{funcname}}__new_alloc( strsize( str ) );
+    ArrayM_{{typename}} xs =
+            arraym_{{funcname}}__new_alloc( strlen_null( str ) );
+    if ( errno ) { return xs; }
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        xs.e[ i ] = {{funcname}}__from_char( str[ i ] );
+    }
+    return xs;
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str0(
+        char const * const str )
+{
+    ArrayM_{{typename}} xs =
+            arraym_{{funcname}}__new_alloc( strsize_null( str ) );
     if ( errno ) { return xs; }
     for ( size_t i = 0; i < xs.length; i++ ) {
         xs.e[ i ] = {{funcname}}__from_char( str[ i ] );
@@ -3071,7 +3088,25 @@ arrayc_{{funcname}}__equal_str(
         ArrayC_{{typename}} const xs,
         char const * const str )
 {
-    size_t const sz = strsize( str );
+    size_t const len = strlen_null( str );
+    if ( len != xs.length ) {
+        return false;
+    }
+    for ( size_t i = 0; i < len; i++ ) {
+        if ( !{{funcname}}__equal_char( xs.e[ i ], str[ i ] ) ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+bool
+arrayc_{{funcname}}__equal_str0(
+        ArrayC_{{typename}} const xs,
+        char const * const str )
+{
+    size_t const sz = strsize_null( str );
     if ( sz != xs.length ) {
         return false;
     }
@@ -3090,6 +3125,16 @@ arraym_{{funcname}}__equal_str(
         char const * const str )
 {
     return arrayc_{{funcname}}__equal_str(
+               arrayc_{{funcname}}__view_arraym( xs ), str );
+}
+
+
+bool
+arraym_{{funcname}}__equal_str0(
+        ArrayM_{{typename}} const xs,
+        char const * const str )
+{
+    return arrayc_{{funcname}}__equal_str0(
                arrayc_{{funcname}}__view_arraym( xs ), str );
 }
 
