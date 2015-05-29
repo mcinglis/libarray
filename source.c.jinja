@@ -2515,6 +2515,30 @@ arrayc_{{funcname}}__not_equal(
 
 
 bool
+arrayc_{{funcname}}__first_is(
+        ArrayC_{{typename}} const xs,
+        {{type}} const e )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    {{type}} const * const firstp = arrayc_{{funcname}}__firstp( xs );
+    return firstp != NULL && {{funcname}}__equal( e, *firstp );
+}
+
+
+bool
+arrayc_{{funcname}}__last_is(
+        ArrayC_{{typename}} const xs,
+        {{type}} const e )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    {{type}} const * const lastp = arrayc_{{funcname}}__lastp( xs );
+    return lastp != NULL && {{funcname}}__equal( e, *lastp );
+}
+
+
+bool
 arrayc_{{funcname}}__has_prefix(
         ArrayC_{{typename}} const xs,
         ArrayC_{{typename}} const ys )
@@ -2669,6 +2693,30 @@ arraym_{{funcname}}__not_equal(
 
 
 bool
+arraym_{{funcname}}__first_is(
+        ArrayM_{{typename}} const xs,
+        {{type}} const e )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__first_is(
+               arrayc_{{funcname}}__view_arraym( xs ), e );
+}
+
+
+bool
+arraym_{{funcname}}__last_is(
+        ArrayM_{{typename}} const xs,
+        {{type}} const e )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__last_is(
+               arrayc_{{funcname}}__view_arraym( xs ), e );
+}
+
+
+bool
 arraym_{{funcname}}__has_prefix(
         ArrayM_{{typename}} const xs,
         ArrayM_{{typename}} const ys )
@@ -2812,6 +2860,9 @@ arraym_{{funcname}}__replaced(
 
 
 {% if 'NULL' in typeclasses %}
+
+
+#include <limits.h>
 
 
 static
