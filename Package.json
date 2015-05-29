@@ -1,18 +1,19 @@
 {
     "dependencies": [
         { "repo": [ "https://bitbucket.org/mcinglis/libtypes.git",
-                    "https://github.com/mcinglis/libtypes.git",
-                    "https://gitorious.org/mcinglis/libtypes.git" ],
+                    "https://github.com/mcinglis/libtypes.git" ],
           "tag":  "v3.*"
         },
         { "repo": [ "https://bitbucket.org/mcinglis/libmacro.git",
-                    "https://github.com/mcinglis/libmacro.git",
-                    "https://gitorious.org/mcinglis/libmacro.git" ],
+                    "https://github.com/mcinglis/libmacro.git" ],
           "tag":  "v2.*"
         },
+        { "repo": [ "https://bitbucket.org/mcinglis/libstr.git",
+                    "https://github.com/mcinglis/libstr.git" ],
+          "tag":  "v1.*"
+        },
         { "repo": [ "https://bitbucket.org/mcinglis/libmaybe.git",
-                    "https://github.com/mcinglis/libmaybe.git",
-                    "https://gitorious.org/mcinglis/libmaybe.git" ],
+                    "https://github.com/mcinglis/libmaybe.git" ],
           "tag":  "v1.*"
         },
         { "dev":  true,
@@ -22,8 +23,7 @@
         },
         { "dev":  true,
           "repo": [ "https://bitbucket.org/mcinglis/libbase.git",
-                    "https://github.com/mcinglis/libbase.git",
-                    "https://gitorious.org/mcinglis/libbase.git" ],
+                    "https://github.com/mcinglis/libbase.git" ],
           "tag":  "v3.*"
         }
     ],

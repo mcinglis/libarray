@@ -5,6 +5,7 @@
 
 DEPS_DIR ?= ./deps
 
+LIBSTR   := $(DEPS_DIR)/libstr
 LIBBASE  := $(DEPS_DIR)/libbase
 LIBMAYBE := $(DEPS_DIR)/libmaybe
 
@@ -106,7 +107,7 @@ clean:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MF "$(@:.o=.dep.mk)" -c $< -o $@
 
 
-tests/test: $(gen_objects)
+tests/test: $(gen_objects) $(LIBSTR)/str.o
 
 $(libbase_headers): $(LIBBASE)/%.h: $(LIBBASE)/header.h.jinja
 	$(TPLRENDER) $< "$($(*)_type)" $($(*)_options) -o $@

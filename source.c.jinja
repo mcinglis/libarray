@@ -3031,25 +3031,7 @@ arraym_{{funcname}}__equal_buf0(
 {% if 'CHAR' in typeclasses %}
 
 
-#include <string.h>
-
-
-static
-size_t
-strlen_null(
-        char const * const str )
-{
-    return ( str == NULL ) ? 0 : strlen( str );
-}
-
-
-static
-size_t
-strsize_null(
-        char const * const str )
-{
-    return ( str == NULL ) ? 0 : ( strlen( str ) + 1 );
-}
+#include <libstr/str.h>
 
 
 ArrayM_{{typename}}
@@ -3057,7 +3039,7 @@ arraym_{{funcname}}__copy_str(
         char const * const str )
 {
     ArrayM_{{typename}} xs =
-            arraym_{{funcname}}__new_alloc( strlen_null( str ) );
+            arraym_{{funcname}}__new_alloc( str__length( str ) );
     if ( errno ) { return xs; }
     for ( size_t i = 0; i < xs.length; i++ ) {
         xs.e[ i ] = {{funcname}}__from_char( str[ i ] );
@@ -3071,7 +3053,7 @@ arraym_{{funcname}}__copy_str0(
         char const * const str )
 {
     ArrayM_{{typename}} xs =
-            arraym_{{funcname}}__new_alloc( strsize_null( str ) );
+            arraym_{{funcname}}__new_alloc( str__size( str ) );
     if ( errno ) { return xs; }
     for ( size_t i = 0; i < xs.length; i++ ) {
         xs.e[ i ] = {{funcname}}__from_char( str[ i ] );
@@ -3088,7 +3070,7 @@ arrayc_{{funcname}}__equal_str(
         ArrayC_{{typename}} const xs,
         char const * const str )
 {
-    size_t const len = strlen_null( str );
+    size_t const len = str__length( str );
     if ( len != xs.length ) {
         return false;
     }
@@ -3106,7 +3088,7 @@ arrayc_{{funcname}}__equal_str0(
         ArrayC_{{typename}} const xs,
         char const * const str )
 {
-    size_t const sz = strsize_null( str );
+    size_t const sz = str__size( str );
     if ( sz != xs.length ) {
         return false;
     }
