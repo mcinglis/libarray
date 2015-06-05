@@ -169,7 +169,7 @@ arrayc_{{funcname}}__memcpy_to(
         void * const to,
         size_t const to_size )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( from ), to != NULL );
+    ASSERT( arrayc_{{funcname}}__is_valid( from ) );
 
     if ( to != NULL && from.e != NULL ) {
         memcpy( to, from.e,
@@ -1360,7 +1360,7 @@ arraym_{{funcname}}__memcpy_from(
         void const * const from,
         size_t const from_size )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( to ), from != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( to ) );
 
     if ( to.e != NULL && from != NULL ) {
         memcpy( to.e, from,
@@ -1375,7 +1375,7 @@ arraym_{{funcname}}__memcpy_to(
         void * const to,
         size_t const to_size )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( from ), to != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( from ) );
 
     arrayc_{{funcname}}__memcpy_to(
         arrayc_{{funcname}}__view_arraym( from ), to, to_size );
