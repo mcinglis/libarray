@@ -381,7 +381,11 @@ arrayc_{{funcname}}__lastp(
 {
     ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
 
-    return arrayc_{{funcname}}__getp( xs, xs.length - 1 );
+    if ( xs.length == 0 ) {
+        return NULL;
+    } else {
+        return arrayc_{{funcname}}__getp( xs, xs.length - 1 );
+    }
 }
 
 
