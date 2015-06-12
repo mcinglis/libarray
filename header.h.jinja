@@ -87,29 +87,9 @@ void
 arrayc_{{funcname}}__copy_into_arraym_with(
         ArrayC_{{typename}} from,
         ArrayM_{{typename}} to,
-        void ( * copier )( {{type}} from_el, {{type}} * to_el ) );
+        void ( * copier )( {{type}} * to_el, {{type}} from_el ) );
 // Calls `copier` (or byte-wise copy if null) with all the respective elements
 // in `from` and `to` up to the minimum length of both arrays.
-
-
-void
-arrayc_{{funcname}}__into_arraym(
-        ArrayC_{{typename}} from,
-        ArrayM_{{typename}} * to );
-// Reallocates `to` to the length of `from`, and copies all elements from
-// `from` to `to`.
-
-
-void
-arrayc_{{funcname}}__into_arraym_with(
-        ArrayC_{{typename}} from,
-        ArrayM_{{typename}} * to,
-        void ( * copier )( {{type}} from_el, {{type}} * to_el ),
-        void ( * freer )( {{type}} * unused_to_el ) );
-// Calls `freer` (if non-null) with all elements in `to` at indices past the
-// length of `from`, reallocates `to` to the length of `from`, and calls
-// `copier` (or byte-wise copy if null) with all the respective elements in
-// `from` and `to`.
 
 
 ArrayC_{{typename}}
@@ -622,16 +602,6 @@ arraym_{{funcname}}__new_calloc(
     arraym_{{funcname}}__copy_arrayc( ARRAYC_{{macroname}}( __VA_ARGS__ ) )
 
 
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_arraym(
-        ArrayM_{{typename}} );
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_arrayc(
-        ArrayC_{{typename}} );
-
-
 void
 arraym_{{funcname}}__free(
         ArrayM_{{typename}} * xs );
@@ -673,25 +643,67 @@ void
 arraym_{{funcname}}__copy_into_arraym_with(
         ArrayM_{{typename}} from,
         ArrayM_{{typename}} to,
-        void ( * copier )( {{type}} from_el, {{type}} * to_el ) );
+        void ( * copier )( {{type}} * to_el, {{type}} from_el ) );
 // Calls `copier` (or byte-wise copy if null) with all the respective elements
 // in `from` and `to` up to the minimum length of both arrays.
 
 
-void
-arraym_{{funcname}}__into_arraym(
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arrayc(
+        ArrayC_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arrayc_with(
+        ArrayC_{{typename}} from,
+        void ( * copier )( {{type}} * new_el, {{type}} from_el ) );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arraym(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arraym_with(
         ArrayM_{{typename}} from,
-        ArrayM_{{typename}} * to );
+        void ( * copier )( {{type}} * new_el, {{type}} from_el ) );
+
+
+void
+arraym_{{funcname}}__copy_arrayc_into(
+        ArrayM_{{typename}} * to,
+        ArrayC_{{typename}} from );
 // Reallocates `to` to the length of `from`, and copies all elements from
 // `from` to `to`.
 
 
 void
-arraym_{{funcname}}__into_arraym_with(
-        ArrayM_{{typename}} from,
+arraym_{{funcname}}__copy_arrayc_into_with(
         ArrayM_{{typename}} * to,
-        void ( * copier )( {{type}} from_el, {{type}} * to_el ),
+        ArrayC_{{typename}} from,
+        void ( * copier )( {{type}} * to_el, {{type}} from_el ),
         void ( * freer )( {{type}} * unused_to_el ) );
+// Calls `freer` (if non-null) with all elements in `to` at indices past the
+// length of `from`, reallocates `to` to the length of `from`, and calls
+// `copier` (or byte-wise copy if null) with all the respective elements in
+// `from` and `to`.
+
+
+void
+arraym_{{funcname}}__copy_arraym_into(
+        ArrayM_{{typename}} * to,
+        ArrayM_{{typename}} from );
+// Reallocates `to` to the length of `from`, and copies all elements from
+// `from` to `to`.
+
+
+void
+arraym_{{funcname}}__copy_arraym_into_with(
+        ArrayM_{{typename}} * to,
+        ArrayM_{{typename}} from,
+        void ( * copier )( {{type}} * to_el, {{type}} from_el ),
+        void ( * freer )( {{type}} * unused_to ) );
 // Calls `freer` (if non-null) with all elements in `to` at indices past the
 // length of `from`, reallocates `to` to the length of `from`, and calls
 // `copier` (or byte-wise copy if null) with all the respective elements in
@@ -1499,8 +1511,48 @@ arraym_{{funcname}}__copy_buf(
 
 
 ArrayM_{{typename}}
+arraym_{{funcname}}__copy_buf_with(
+        {{type}} const * buf,
+        void ( * copier )( {{type}} * new_el, {{type}} buf_el ) );
+
+
+ArrayM_{{typename}}
 arraym_{{funcname}}__copy_buf0(
         {{type}} const * const buf );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_buf0_with(
+        {{type}} const * buf,
+        void ( * copier )( {{type}} * new_el, {{type}} buf_el ) );
+
+
+void
+arraym_{{funcname}}__copy_buf_into(
+        ArrayM_{{typename}} * to,
+        {{type}} const * buf );
+
+
+void
+arraym_{{funcname}}__copy_buf_into_with(
+        ArrayM_{{typename}} * to,
+        {{type}} const * buf,
+        void ( * copier )( {{type}} * to_el, {{type}} buf_el ),
+        void ( * freer )( {{type}} * unused_to_el ) );
+
+
+void
+arraym_{{funcname}}__copy_buf0_into(
+        ArrayM_{{typename}} * to,
+        {{type}} const * buf );
+
+
+void
+arraym_{{funcname}}__copy_buf0_into_with(
+        ArrayM_{{typename}} * to,
+        {{type}} const * buf,
+        void ( * copier )( {{type}} * to_el, {{type}} buf_el ),
+        void ( * freer )( {{type}} * unused_to_el ) );
 
 
 bool
@@ -1514,8 +1566,6 @@ bool
 arraym_{{funcname}}__all_null(
         ArrayM_{{typename}} const xs );
 // Equivalent to `arraym_{{funcname}}__all( xs, {{funcname}}__is_null )`.
-
-
 
 
 {% if 'EQ' in typeclasses %}
@@ -1554,14 +1604,80 @@ arraym_{{funcname}}__equal_buf0(
 {% if 'CHAR' in typeclasses %}
 
 
+void
+arraym_{{funcname}}__copy_in_str(
+        ArrayM_{{typename}} to,
+        char const * str );
+
+
+void
+arraym_{{funcname}}__copy_in_str_with(
+        ArrayM_{{typename}} to,
+        char const * str,
+        void ( * copier )( {{type}} * to_el, char c ) );
+
+
+void
+arraym_{{funcname}}__copy_in_str0(
+        ArrayM_{{typename}} to,
+        char const * str );
+
+
+void
+arraym_{{funcname}}__copy_in_str0_with(
+        ArrayM_{{typename}} to,
+        char const * str,
+        void ( * copier )( {{type}} * to_el, char c ) );
+
+
 ArrayM_{{typename}}
 arraym_{{funcname}}__copy_str(
         char const * str );
 
 
 ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str_with(
+        char const * str,
+        void ( * copier )( {{type}} * to_el, char c ) );
+
+
+ArrayM_{{typename}}
 arraym_{{funcname}}__copy_str0(
         char const * str );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str0_with(
+        char const * str,
+        void ( * copier )( {{type}} * to_el, char c ) );
+
+
+void
+arraym_{{funcname}}__copy_str_into(
+        ArrayM_{{typename}} * to,
+        char const * str );
+
+
+void
+arraym_{{funcname}}__copy_str_into_with(
+        ArrayM_{{typename}} * to,
+        char const * str,
+        void ( * copier )( {{type}} * to_el, char c ),
+        void ( * freer )( {{type}} * unused_to_el ) );
+
+
+void
+arraym_{{funcname}}__copy_str0_into(
+        ArrayM_{{typename}} * to,
+        char const * str );
+
+
+void
+arraym_{{funcname}}__copy_str0_into_with(
+        ArrayM_{{typename}} * to,
+        char const * str,
+        void ( * copier )( {{type}} * to_el, char c ),
+        void ( * freer )( {{type}} * unused_to_el ) );
 
 
 {% if 'EQ' in typeclasses %}

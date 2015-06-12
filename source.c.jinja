@@ -194,7 +194,7 @@ void
 arrayc_{{funcname}}__copy_into_arraym_with(
         ArrayC_{{typename}} const from,
         ArrayM_{{typename}} const to,
-        void ( * const copier )( {{type}} from_el, {{type}} * to_el ) )
+        void ( * const copier )( {{type}} * to_el, {{type}} from_el ) )
 {
     ASSERT( arrayc_{{funcname}}__is_valid( from ),
             arraym_{{funcname}}__is_valid( to ) );
@@ -202,43 +202,14 @@ arrayc_{{funcname}}__copy_into_arraym_with(
     errno = 0;
     for ( size_t i = 0; i < MIN( from.length, to.length ); i++ ) {
         {{type}} const from_el = arrayc_{{funcname}}__get( from, i );
-        {{type}} * const to_ptr = arraym_{{funcname}}__getp( to, i );
+        {{type}} * const to_el = arraym_{{funcname}}__getp( to, i );
         if ( copier == NULL ) {
-            *to_ptr = from_el;
+            *to_el = from_el;
         } else {
-            copier( from_el, to_ptr );
+            copier( to_el, from_el );
             if ( errno ) { return; }
         }
     }
-}
-
-
-void
-arrayc_{{funcname}}__into_arraym(
-        ArrayC_{{typename}} const from,
-        ArrayM_{{typename}} * const to )
-{
-    ASSERT( arrayc_{{funcname}}__is_valid( from ),
-            to != NULL, arraym_{{funcname}}__is_valid( *to ) );
-
-    arrayc_{{funcname}}__into_arraym_with( from, to, NULL, NULL );
-}
-
-
-void
-arrayc_{{funcname}}__into_arraym_with(
-        ArrayC_{{typename}} const from,
-        ArrayM_{{typename}} * const to,
-        void ( * const copier )( {{type}} from, {{type}} * to ),
-        void ( * const freer )( {{type}} * unused_to ) )
-{
-    ASSERT( arrayc_{{funcname}}__is_valid( from ),
-            to != NULL, arraym_{{funcname}}__is_valid( *to ) );
-
-    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *to, from.length ),
-                                .f = freer );
-    arraym_{{funcname}}__realloc( to, from.length );
-    arrayc_{{funcname}}__copy_into_arraym_with( from, *to, copier );
 }
 
 
@@ -1261,13 +1232,8 @@ arraym_{{funcname}}__new(
         {{type}} const * const elements,
         size_t const length )
 {
-    errno = 0;
-    ArrayM_{{typename}} const new = arraym_{{funcname}}__new_alloc( length );
-    if ( errno ) { return ( ArrayM_{{typename}} ){ 0 }; }
-    size_t sz = size__mul( length, sizeof ( {{type}} ) );
-    if ( errno ) { return ( ArrayM_{{typename}} ){ 0 }; }
-    arraym_{{funcname}}__memcpy_from( new, elements, sz );
-    return new;
+    return arraym_{{funcname}}__copy_arrayc(
+               arrayc_{{funcname}}__new( elements, length ) );
 }
 
 
@@ -1303,27 +1269,6 @@ arraym_{{funcname}}__new_calloc(
     if ( errno ) { return new; }
     arraym_{{funcname}}__memzero( new );
     return new;
-}
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_arraym(
-        ArrayM_{{typename}} const xs )
-{
-    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
-
-    return arraym_{{funcname}}__copy_arrayc(
-               arrayc_{{funcname}}__view_arraym( xs ) );
-}
-
-
-ArrayM_{{typename}}
-arraym_{{funcname}}__copy_arrayc(
-        ArrayC_{{typename}} const xs )
-{
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
-
-    return arraym_{{funcname}}__new( xs.e, xs.length );
 }
 
 
@@ -1398,7 +1343,7 @@ void
 arraym_{{funcname}}__copy_into_arraym_with(
         ArrayM_{{typename}} const from,
         ArrayM_{{typename}} const to,
-        void ( * const copier )( {{type}} from_el, {{type}} * to_el ) )
+        void ( * const copier )( {{type}} * to_el, {{type}} from_el ) )
 {
     ASSERT( arraym_{{funcname}}__is_valid( from ),
             arraym_{{funcname}}__is_valid( to ) );
@@ -1408,30 +1353,109 @@ arraym_{{funcname}}__copy_into_arraym_with(
 }
 
 
-void
-arraym_{{funcname}}__into_arraym(
-        ArrayM_{{typename}} const from,
-        ArrayM_{{typename}} * const to )
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arrayc(
+        ArrayC_{{typename}} const from )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( from ),
-            to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+    ASSERT( arrayc_{{funcname}}__is_valid( from ) );
 
-    arraym_{{funcname}}__into_arraym_with( from, to, NULL, NULL );
+    return arraym_{{funcname}}__copy_arrayc_with( from, NULL );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arrayc_with(
+        ArrayC_{{typename}} const from,
+        void ( * const copier )( {{type}} * new_el, {{type}} from_el ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( from ) );
+
+    ArrayM_{{typename}} const new =
+            arraym_{{funcname}}__new_alloc( from.length );
+    if ( errno ) { return new; }
+    arrayc_{{funcname}}__copy_into_arraym_with( from, new, copier );
+    return new;
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arraym(
+        ArrayM_{{typename}} const from )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( from ) );
+
+    return arraym_{{funcname}}__copy_arraym_with( from, NULL );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_arraym_with(
+        ArrayM_{{typename}} const from,
+        void ( * const copier )( {{type}} * new_el, {{type}} from_el ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( from ) );
+
+    return arraym_{{funcname}}__copy_arrayc_with(
+               arrayc_{{funcname}}__view_arraym( from ), copier );
 }
 
 
 void
-arraym_{{funcname}}__into_arraym_with(
-        ArrayM_{{typename}} const from,
+arraym_{{funcname}}__copy_arrayc_into(
         ArrayM_{{typename}} * const to,
-        void ( * const copier )( {{type}} from, {{type}} * to ),
+        ArrayC_{{typename}} const from )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ),
+            arrayc_{{funcname}}__is_valid( from ) );
+
+    arraym_{{funcname}}__copy_arrayc_into_with( to, from, NULL, NULL );
+}
+
+
+void
+arraym_{{funcname}}__copy_arrayc_into_with(
+        ArrayM_{{typename}} * const to,
+        ArrayC_{{typename}} const from,
+        void ( * const copier )( {{type}} * to_el, {{type}} from_el ),
+        void ( * const freer )( {{type}} * unused_to_el ) )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ),
+            arrayc_{{funcname}}__is_valid( from ) );
+
+    errno = 0;
+    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *to, from.length ),
+                                .f = freer );
+    if ( errno ) { return; }
+    arraym_{{funcname}}__realloc( to, from.length );
+    if ( errno ) { return; }
+    arrayc_{{funcname}}__copy_into_arraym_with( from, *to, copier );
+}
+
+
+void
+arraym_{{funcname}}__copy_arraym_into(
+        ArrayM_{{typename}} * const to,
+        ArrayM_{{typename}} const from )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ),
+            arraym_{{funcname}}__is_valid( from ) );
+
+    arraym_{{funcname}}__copy_arraym_into_with( to, from, NULL, NULL );
+}
+
+
+void
+arraym_{{funcname}}__copy_arraym_into_with(
+        ArrayM_{{typename}} * const to,
+        ArrayM_{{typename}} const from,
+        void ( * const copier )( {{type}} * to_el, {{type}} from_el ),
         void ( * const freer )( {{type}} * unused_to ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( from ),
-            to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ),
+            arraym_{{funcname}}__is_valid( from ) );
 
-    arrayc_{{funcname}}__into_arraym_with(
-        arrayc_{{funcname}}__view_arraym( from ), to, copier, freer );
+    arraym_{{funcname}}__copy_arrayc_into_with(
+            to, arrayc_{{funcname}}__view_arraym( from ), copier, freer );
 }
 
 
@@ -2944,8 +2968,17 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__copy_buf(
         {{type}} const * const buf )
 {
-    return arraym_{{funcname}}__copy_arrayc(
-               arrayc_{{funcname}}__view_buf( buf ) );
+    return arraym_{{funcname}}__copy_buf_with( buf, NULL );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_buf_with(
+        {{type}} const * const buf,
+        void ( * const copier )( {{type}} * new_el, {{type}} buf_el ) )
+{
+    return arraym_{{funcname}}__copy_arrayc_with(
+               arrayc_{{funcname}}__view_buf( buf ), copier );
 }
 
 
@@ -2953,8 +2986,67 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__copy_buf0(
         {{type}} const * const buf )
 {
-    return arraym_{{funcname}}__copy_arrayc(
-               arrayc_{{funcname}}__view_buf0( buf ) );
+    return arraym_{{funcname}}__copy_buf0_with( buf, NULL );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_buf0_with(
+        {{type}} const * const buf,
+        void ( * const copier )( {{type}} * new_el, {{type}} buf_el ) )
+{
+    return arraym_{{funcname}}__copy_arrayc_with(
+               arrayc_{{funcname}}__view_buf0( buf ), copier );
+}
+
+
+void
+arraym_{{funcname}}__copy_buf_into(
+        ArrayM_{{typename}} * const to,
+        {{type}} const * const buf )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+
+    arraym_{{funcname}}__copy_buf_into_with( to, buf, NULL, NULL );
+}
+
+
+void
+arraym_{{funcname}}__copy_buf_into_with(
+        ArrayM_{{typename}} * const to,
+        {{type}} const * const buf,
+        void ( * const copier )( {{type}} * to_el, {{type}} buf_el ),
+        void ( * const freer )( {{type}} * unused_to_el ) )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+
+    arraym_{{funcname}}__copy_arrayc_into_with(
+        to, arrayc_{{funcname}}__view_buf( buf ), copier, freer );
+}
+
+
+void
+arraym_{{funcname}}__copy_buf0_into(
+        ArrayM_{{typename}} * const to,
+        {{type}} const * const buf )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+
+    arraym_{{funcname}}__copy_buf0_into_with( to, buf, NULL, NULL );
+}
+
+
+void
+arraym_{{funcname}}__copy_buf0_into_with(
+        ArrayM_{{typename}} * const to,
+        {{type}} const * const buf,
+        void ( * const copier )( {{type}} * to_el, {{type}} buf_el ),
+        void ( * const freer )( {{type}} * unused_to_el ) )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+
+    arraym_{{funcname}}__copy_arrayc_into_with(
+        to, arrayc_{{funcname}}__view_buf0( buf ), copier, freer );
 }
 
 
@@ -3034,17 +3126,92 @@ arraym_{{funcname}}__equal_buf0(
 #include <libstr/str.h>
 
 
+void
+arraym_{{funcname}}__copy_in_str(
+        ArrayM_{{typename}} to,
+        char const * const str )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( to ) );
+
+    arraym_{{funcname}}__copy_in_str_with( to, str, NULL );
+}
+
+
+void
+arraym_{{funcname}}__copy_in_str_with(
+        ArrayM_{{typename}} to,
+        char const * const str,
+        void ( * copier )( {{type}} * to_el, char c ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( to ) );
+
+    size_t const len = str__length( str );
+    errno = 0;
+    for ( size_t i = 0; i < MIN( to.length, len ); i++ ) {
+        {{type}} * const to_el = arraym_{{funcname}}__getp( to, i );
+        char const c = str[ i ];
+        if ( copier == NULL ) {
+            *to_el = {{funcname}}__from_char( c );
+        } else {
+            copier( to_el, c );
+        }
+        if ( errno ) { return; }
+    }
+}
+
+
+void
+arraym_{{funcname}}__copy_in_str0(
+        ArrayM_{{typename}} to,
+        char const * const str )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( to ) );
+
+    arraym_{{funcname}}__copy_in_str0_with( to, str, NULL );
+}
+
+
+void
+arraym_{{funcname}}__copy_in_str0_with(
+        ArrayM_{{typename}} to,
+        char const * const str,
+        void ( * copier )( {{type}} * to_el, char c ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( to ) );
+
+    size_t const sz = str__size( str );
+    errno = 0;
+    for ( size_t i = 0; i < MIN( sz, to.length ); i++ ) {
+        {{type}} * const to_el = arraym_{{funcname}}__getp( to, i );
+        char const c = str[ i ];
+        if ( copier == NULL ) {
+            *to_el = {{funcname}}__from_char( c );
+        } else {
+            copier( to_el, c );
+        }
+        if ( errno ) { return; }
+    }
+}
+
+
 ArrayM_{{typename}}
 arraym_{{funcname}}__copy_str(
         char const * const str )
 {
-    ArrayM_{{typename}} xs =
+    return arraym_{{funcname}}__copy_str_with( str, NULL );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str_with(
+        char const * const str,
+        void ( * copier )( {{type}} * to_el, char c ) )
+{
+    ArrayM_{{typename}} new =
             arraym_{{funcname}}__new_alloc( str__length( str ) );
-    if ( errno ) { return xs; }
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        xs.e[ i ] = {{funcname}}__from_char( str[ i ] );
-    }
-    return xs;
+    if ( errno ) { return new; }
+    arraym_{{funcname}}__copy_in_str_with( new, str, copier );
+    return new;
 }
 
 
@@ -3052,13 +3219,80 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__copy_str0(
         char const * const str )
 {
-    ArrayM_{{typename}} xs =
+    return arraym_{{funcname}}__copy_str0_with( str, NULL );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__copy_str0_with(
+        char const * const str,
+        void ( * copier )( {{type}} * to_el, char c ) )
+{
+    ArrayM_{{typename}} new =
             arraym_{{funcname}}__new_alloc( str__size( str ) );
-    if ( errno ) { return xs; }
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        xs.e[ i ] = {{funcname}}__from_char( str[ i ] );
-    }
-    return xs;
+    if ( errno ) { return new; }
+    arraym_{{funcname}}__copy_in_str0_with( new, str, copier );
+    return new;
+}
+
+
+void
+arraym_{{funcname}}__copy_str_into(
+        ArrayM_{{typename}} * const to,
+        char const * const str )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+
+    arraym_{{funcname}}__copy_str_into_with( to, str, NULL, NULL );
+}
+
+
+void
+arraym_{{funcname}}__copy_str_into_with(
+        ArrayM_{{typename}} * const to,
+        char const * const str,
+        void ( * const copier )( {{type}} * to_el, char c ),
+        void ( * const freer )( {{type}} * unused_to_el ) )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+
+    size_t const len = str__length( str );
+    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *to, len ),
+                                .f = freer );
+    if ( errno ) { return; }
+    arraym_{{funcname}}__realloc( to, len );
+    if ( errno ) { return; }
+    arraym_{{funcname}}__copy_in_str_with( *to, str, copier );
+}
+
+
+void
+arraym_{{funcname}}__copy_str0_into(
+        ArrayM_{{typename}} * const to,
+        char const * const str )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+
+    arraym_{{funcname}}__copy_str0_into_with( to, str, NULL, NULL );
+}
+
+
+void
+arraym_{{funcname}}__copy_str0_into_with(
+        ArrayM_{{typename}} * const to,
+        char const * const str,
+        void ( * const copier )( {{type}} * to_el, char c ),
+        void ( * const freer )( {{type}} * unused_to_el ) )
+{
+    ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
+
+    size_t const sz = str__size( str );
+    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *to, sz ),
+                                .f = freer );
+    if ( errno ) { return; }
+    arraym_{{funcname}}__realloc( to, sz );
+    if ( errno ) { return; }
+    arraym_{{funcname}}__copy_in_str0_with( *to, str, copier );
 }
 
 

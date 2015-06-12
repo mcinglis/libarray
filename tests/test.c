@@ -167,6 +167,9 @@ test_char( void )
         ArrayM_char c = arraym_char__copy_str( "abc" );
         ASSERT( arraym_char__equal_els( c, 'a', 'b', 'c' ),
                 arraym_char__equal_str( c, "abc" ) );
+        arraym_char__copy_str_into( &c, "test" );
+        ASSERT( arraym_char__equal_els( c, 't', 'e', 's', 't' ),
+                arraym_char__equal_str( c, "test" ) );
         arraym_char__free( &c );
 
         ArrayM_char d = arraym_char__copy_str( NULL );
@@ -196,6 +199,9 @@ test_char( void )
         ArrayM_char c = arraym_char__copy_str0( "abc" );
         ASSERT( arraym_char__equal_els( c, 'a', 'b', 'c', '\0' ),
                 arraym_char__equal_str0( c, "abc" ) );
+        arraym_char__copy_str0_into( &c, "test" );
+        ASSERT( arraym_char__equal_els( c, 't', 'e', 's', 't', '\0' ),
+                arraym_char__equal_str0( c, "test" ) );
         arraym_char__free( &c );
 
         ArrayM_char d = arraym_char__copy_str0( NULL );
@@ -221,6 +227,9 @@ test_char( void )
         ArrayM_uchar c = arraym_uchar__copy_str( "abc" );
         ASSERT( arraym_uchar__equal_els( c, 'a', 'b', 'c' ),
                 arraym_uchar__equal_str( c, "abc" ) );
+        arraym_uchar__copy_str_into( &c, "test" );
+        ASSERT( arraym_uchar__equal_els( c, 't', 'e', 's', 't' ),
+                arraym_uchar__equal_str( c, "test" ) );
         arraym_uchar__free( &c );
 
         ArrayM_uchar d = arraym_uchar__copy_str( NULL );
