@@ -614,6 +614,13 @@ arraym_{{funcname}}__realloc(
 
 
 void
+arraym_{{funcname}}__realloc_with(
+        ArrayM_{{typename}} *,
+        size_t new_length,
+        void ( * freer )( {{type}} * lost_el ) );
+
+
+void
 arraym_{{funcname}}__memcpy_from(
         ArrayM_{{typename}} to,
         void const * from,

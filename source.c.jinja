@@ -1289,7 +1289,22 @@ arraym_{{funcname}}__realloc(
 {
     ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
 
+    arraym_{{funcname}}__realloc_with( xs, new_length, NULL );
+}
+
+
+void
+arraym_{{funcname}}__realloc_with(
+        ArrayM_{{typename}} * const xs,
+        size_t const new_length,
+        void ( * const freer )( {{type}} * lost_el ) )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
     errno = 0;
+    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *xs, new_length ),
+                                .f = freer );
+    if ( errno ) { return; }
     if ( new_length != xs->length ) {
         {{type}} * const new_e = reallocn( xs->e, new_length,
                                            sizeof ( {{type}} ) );
@@ -1422,11 +1437,7 @@ arraym_{{funcname}}__copy_arrayc_into_with(
     ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ),
             arrayc_{{funcname}}__is_valid( from ) );
 
-    errno = 0;
-    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *to, from.length ),
-                                .f = freer );
-    if ( errno ) { return; }
-    arraym_{{funcname}}__realloc( to, from.length );
+    arraym_{{funcname}}__realloc_with( to, from.length, freer );
     if ( errno ) { return; }
     arrayc_{{funcname}}__copy_into_arraym_with( from, *to, copier );
 }
@@ -3256,11 +3267,7 @@ arraym_{{funcname}}__copy_str_into_with(
 {
     ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
 
-    size_t const len = str__length( str );
-    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *to, len ),
-                                .f = freer );
-    if ( errno ) { return; }
-    arraym_{{funcname}}__realloc( to, len );
+    arraym_{{funcname}}__realloc_with( to, str__length( str ), freer );
     if ( errno ) { return; }
     arraym_{{funcname}}__copy_in_str_with( *to, str, copier );
 }
@@ -3286,11 +3293,7 @@ arraym_{{funcname}}__copy_str0_into_with(
 {
     ASSERT( to != NULL, arraym_{{funcname}}__is_valid( *to ) );
 
-    size_t const sz = str__size( str );
-    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *to, sz ),
-                                .f = freer );
-    if ( errno ) { return; }
-    arraym_{{funcname}}__realloc( to, sz );
+    arraym_{{funcname}}__realloc_with( to, str__size( str ), freer );
     if ( errno ) { return; }
     arraym_{{funcname}}__copy_in_str0_with( *to, str, copier );
 }
