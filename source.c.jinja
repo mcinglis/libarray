@@ -1306,6 +1306,18 @@ arraym_{{funcname}}__free(
 
 
 void
+arraym_{{funcname}}__free_with(
+        ArrayM_{{typename}} * const xs,
+        void ( * const freer )( {{type}} * x ) )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    arraym_{{funcname}}__eachp( *xs, .f = freer );
+    arraym_{{funcname}}__free( xs );
+}
+
+
+void
 arraym_{{funcname}}__realloc(
         ArrayM_{{typename}} * const xs,
         size_t const new_length )

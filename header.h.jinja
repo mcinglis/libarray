@@ -615,6 +615,12 @@ arraym_{{funcname}}__free(
 
 
 void
+arraym_{{funcname}}__free_with(
+        ArrayM_{{typename}} * xs,
+        void ( * freer )( {{type}} * x ) );
+
+
+void
 arraym_{{funcname}}__realloc(
         ArrayM_{{typename}} *,
         size_t new_length );
