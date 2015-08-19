@@ -399,6 +399,13 @@ arrayc_{{funcname}}__pick(
         bool ( * f )( {{type}} const * pick, {{type}} x ) );
 
 
+{{type}} const *
+arrayc_{{funcname}}__pickv(
+        ArrayC_{{typename}} xs,
+        bool ( * f )( {{type}} const * pick, {{type}} x, void * ptr ),
+        void * ptr );
+
+
 bool
 arrayc_{{funcname}}__equal_by(
         ArrayC_{{typename}} xs,
@@ -1065,6 +1072,13 @@ arraym_{{funcname}}__foldr1(
 arraym_{{funcname}}__pick(
         ArrayM_{{typename}} xs,
         bool ( * f )( {{type}} const * pick, {{type}} x ) );
+
+
+{{type}} *
+arraym_{{funcname}}__pickv(
+        ArrayM_{{typename}} xs,
+        bool ( * f )( {{type}} const * pick, {{type}} x, void * ptr ),
+        void * ptr );
 
 
 bool

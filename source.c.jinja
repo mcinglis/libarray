@@ -891,6 +891,25 @@ arrayc_{{funcname}}__pick(
 }
 
 
+{{type}} const *
+arrayc_{{funcname}}__pickv(
+        ArrayC_{{typename}} const xs,
+        bool ( * const f )( {{type}} const * pick, {{type}} x, void * ptr ),
+        void * const ptr )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), f != NULL );
+
+    {{type}} const * pick = NULL;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} const * const el = arrayc_{{funcname}}__getp( xs, i );
+        if ( f( pick, *el, ptr ) ) {
+            pick = el;
+        }
+    }
+    return pick;
+}
+
+
 bool
 arrayc_{{funcname}}__equal_by(
         ArrayC_{{typename}} const xs,
@@ -2202,6 +2221,25 @@ arraym_{{funcname}}__pick(
     for ( size_t i = 0; i < xs.length; i++ ) {
         {{type}} * const el = arraym_{{funcname}}__getp( xs, i );
         if ( f( pick, *el ) ) {
+            pick = el;
+        }
+    }
+    return pick;
+}
+
+
+{{type}} *
+arraym_{{funcname}}__pickv(
+        ArrayM_{{typename}} const xs,
+        bool ( * const f )( {{type}} const * pick, {{type}} x, void * ptr ),
+        void * const ptr )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), f != NULL );
+
+    {{type}} * pick = NULL;
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const el = arraym_{{funcname}}__getp( xs, i );
+        if ( f( pick, *el, ptr ) ) {
             pick = el;
         }
     }
