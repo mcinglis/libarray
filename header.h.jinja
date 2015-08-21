@@ -406,6 +406,54 @@ arrayc_{{funcname}}__pickv(
         void * ptr );
 
 
+struct arrayc_{{funcname}}__each__options {
+    void ( * f )( {{type}} );
+    bool ( * b )( {{type}} );
+    void ( * fi )( size_t index, {{type}} );
+    bool ( * bi )( size_t index, {{type}} );
+    void ( * fv )( void const * v, {{type}} );
+    bool ( * bv )( void const * v, {{type}} );
+    void ( * fvi )( void const * v, size_t index, {{type}} );
+    bool ( * bvi )( void const * v, size_t index, {{type}} );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+    void const * v;
+};
+
+bool
+arrayc_{{funcname}}__each_(
+        ArrayC_{{typename}},
+        struct arrayc_{{funcname}}__each__options );
+
+#define arrayc_{{funcname}}__each( XS, ... ) \
+    arrayc_{{funcname}}__each_( XS, \
+        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
+
+
+struct arrayc_{{funcname}}__eachp__options {
+    void ( * f )( {{type}} const * );
+    bool ( * b )( {{type}} const * );
+    void ( * fi )( size_t index, {{type}} const * );
+    bool ( * bi )( size_t index, {{type}} const * );
+    void ( * fv )( void const * v, {{type}} const * );
+    bool ( * bv )( void const * v, {{type}} const * );
+    void ( * fvi )( void const * v, size_t index, {{type}} const * );
+    bool ( * bvi )( void const * v, size_t index, {{type}} const * );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+    void const * v;
+};
+
+bool
+arrayc_{{funcname}}__eachp_(
+        ArrayC_{{typename}},
+        struct arrayc_{{funcname}}__eachp__options );
+
+#define arrayc_{{funcname}}__eachp( XS, ... ) \
+    arrayc_{{funcname}}__eachp_( XS, \
+        ( struct arrayc_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
+
+
 bool
 arrayc_{{funcname}}__equal_by(
         ArrayC_{{typename}} xs,
@@ -523,52 +571,47 @@ arrayc_{{funcname}}__replaced_by(
         bool ( * eq )( {{type}} x, {{type}} el ) );
 
 
-struct arrayc_{{funcname}}__each__options {
-    void ( * f )( {{type}} );
-    bool ( * b )( {{type}} );
-    void ( * fi )( size_t index, {{type}} );
-    bool ( * bi )( size_t index, {{type}} );
-    void ( * fv )( void const * v, {{type}} );
-    bool ( * bv )( void const * v, {{type}} );
-    void ( * fvi )( void const * v, size_t index, {{type}} );
-    bool ( * bvi )( void const * v, size_t index, {{type}} );
-    bool ( * where )( {{type}} );
-    bool ( * where_not )( {{type}} );
-    void const * v;
-};
+ord
+arrayc_{{funcname}}__compare_by(
+        ArrayC_{{typename}} xs,
+        ArrayC_{{typename}} ys,
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
 
 bool
-arrayc_{{funcname}}__each_(
+arrayc_{{funcname}}__is_ascending_by(
         ArrayC_{{typename}},
-        struct arrayc_{{funcname}}__each__options );
+        ord ( * cmp )( {{type}}, {{type}} ) );
 
-#define arrayc_{{funcname}}__each( XS, ... ) \
-    arrayc_{{funcname}}__each_( XS, \
-        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
-
-
-struct arrayc_{{funcname}}__eachp__options {
-    void ( * f )( {{type}} const * );
-    bool ( * b )( {{type}} const * );
-    void ( * fi )( size_t index, {{type}} const * );
-    bool ( * bi )( size_t index, {{type}} const * );
-    void ( * fv )( void const * v, {{type}} const * );
-    bool ( * bv )( void const * v, {{type}} const * );
-    void ( * fvi )( void const * v, size_t index, {{type}} const * );
-    bool ( * bvi )( void const * v, size_t index, {{type}} const * );
-    bool ( * where )( {{type}} );
-    bool ( * where_not )( {{type}} );
-    void const * v;
-};
 
 bool
-arrayc_{{funcname}}__eachp_(
+arrayc_{{funcname}}__is_strictly_ascending_by(
         ArrayC_{{typename}},
-        struct arrayc_{{funcname}}__eachp__options );
+        ord ( * cmp )( {{type}}, {{type}} ) );
 
-#define arrayc_{{funcname}}__eachp( XS, ... ) \
-    arrayc_{{funcname}}__eachp_( XS, \
-        ( struct arrayc_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
+
+bool
+arrayc_{{funcname}}__is_descending_by(
+        ArrayC_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
+bool
+arrayc_{{funcname}}__is_strictly_descending_by(
+        ArrayC_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
+{{type}}
+arrayc_{{funcname}}__minimum_by(
+        ArrayC_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
+{{type}}
+arrayc_{{funcname}}__maximum_by(
+        ArrayC_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
 
 
 
@@ -822,6 +865,21 @@ arraym_{{funcname}}__set_last(
 
 
 void
+arraym_{{funcname}}__swap(
+        ArrayM_{{typename}},
+        size_t i,
+        size_t j );
+
+
+void
+arraym_{{funcname}}__swap_sequence(
+        ArrayM_{{typename}},
+        size_t n,
+        size_t i,
+        size_t j );
+
+
+void
 arraym_{{funcname}}__memset(
         ArrayM_{{typename}},
         uchar const byte );
@@ -844,6 +902,21 @@ arraym_{{funcname}}__firstp(
 
 Maybe_{{typename}}
 arraym_{{funcname}}__firstm(
+        ArrayM_{{typename}} );
+
+
+{{type}}
+arraym_{{funcname}}__middle(
+        ArrayM_{{typename}} );
+
+
+{{type}} *
+arraym_{{funcname}}__middlep(
+        ArrayM_{{typename}} );
+
+
+Maybe_{{typename}}
+arraym_{{funcname}}__middlem(
         ArrayM_{{typename}} );
 
 
@@ -1088,6 +1161,40 @@ arraym_{{funcname}}__pickv(
 
 
 bool
+arraym_{{funcname}}__each_(
+        ArrayM_{{typename}},
+        struct arrayc_{{funcname}}__each__options );
+
+#define arraym_{{funcname}}__each( XS, ... ) \
+    arraym_{{funcname}}__each_( XS, \
+        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
+
+
+struct arraym_{{funcname}}__eachp__options {
+    void ( * f )( {{type}} * );
+    bool ( * b )( {{type}} * );
+    void ( * fi )( size_t index, {{type}} * );
+    bool ( * bi )( size_t index, {{type}} * );
+    void ( * fv )( void const * v, {{type}} * );
+    bool ( * bv )( void const * v, {{type}} * );
+    void ( * fvi )( void const * v, size_t index, {{type}} * );
+    bool ( * bvi )( void const * v, size_t index, {{type}} * );
+    bool ( * where )( {{type}} );
+    bool ( * where_not )( {{type}} );
+    void const * v;
+};
+
+bool
+arraym_{{funcname}}__eachp_(
+        ArrayM_{{typename}},
+        struct arraym_{{funcname}}__eachp__options );
+
+#define arraym_{{funcname}}__eachp( XS, ... ) \
+    arraym_{{funcname}}__eachp_( XS, \
+        ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
+
+
+bool
 arraym_{{funcname}}__equal_by(
         ArrayM_{{typename}} xs,
         ArrayM_{{typename}} ys,
@@ -1219,38 +1326,53 @@ arraym_{{funcname}}__replaced_by(
         bool ( * eq )( {{type}} x, {{type}} el ) );
 
 
-bool
-arraym_{{funcname}}__each_(
-        ArrayM_{{typename}},
-        struct arrayc_{{funcname}}__each__options );
+ord
+arraym_{{funcname}}__compare_by(
+        ArrayM_{{typename}} xs,
+        ArrayM_{{typename}} ys,
+        ord ( * cmp )( {{type}}, {{type}} ) );
 
-#define arraym_{{funcname}}__each( XS, ... ) \
-    arraym_{{funcname}}__each_( XS, \
-        ( struct arrayc_{{funcname}}__each__options ){ __VA_ARGS__ } )
-
-
-struct arraym_{{funcname}}__eachp__options {
-    void ( * f )( {{type}} * );
-    bool ( * b )( {{type}} * );
-    void ( * fi )( size_t index, {{type}} * );
-    bool ( * bi )( size_t index, {{type}} * );
-    void ( * fv )( void const * v, {{type}} * );
-    bool ( * bv )( void const * v, {{type}} * );
-    void ( * fvi )( void const * v, size_t index, {{type}} * );
-    bool ( * bvi )( void const * v, size_t index, {{type}} * );
-    bool ( * where )( {{type}} );
-    bool ( * where_not )( {{type}} );
-    void const * v;
-};
 
 bool
-arraym_{{funcname}}__eachp_(
+arraym_{{funcname}}__is_ascending_by(
         ArrayM_{{typename}},
-        struct arraym_{{funcname}}__eachp__options );
+        ord ( * cmp )( {{type}}, {{type}} ) );
 
-#define arraym_{{funcname}}__eachp( XS, ... ) \
-    arraym_{{funcname}}__eachp_( XS, \
-        ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
+
+bool
+arraym_{{funcname}}__is_strictly_ascending_by(
+        ArrayM_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__is_descending_by(
+        ArrayM_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
+bool
+arraym_{{funcname}}__is_strictly_descending_by(
+        ArrayM_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
+{{type}}
+arraym_{{funcname}}__minimum_by(
+        ArrayM_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
+{{type}}
+arraym_{{funcname}}__maximum_by(
+        ArrayM_{{typename}},
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
+void
+arraym_{{funcname}}__quicksort_by(
+        ArrayM_{{typename}} xs,
+        ord ( * cmp )( {{type}}, {{type}} ) );
 
 
 

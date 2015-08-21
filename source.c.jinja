@@ -911,6 +911,80 @@ arrayc_{{funcname}}__pickv(
 
 
 bool
+arrayc_{{funcname}}__each_(
+        ArrayC_{{typename}} const xs,
+        struct arrayc_{{funcname}}__each__options const o )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} const el = arrayc_{{funcname}}__get( xs, i );
+        if ( ( o.where != NULL && !o.where( el ) )
+          || ( o.where_not != NULL && o.where_not( el ) ) ) {
+            continue;
+        }
+        errno = 0;
+        if ( o.f != NULL ) {
+            o.f( el );
+        } else if ( o.b != NULL ) {
+            if ( o.b( el ) == false ) { return false; }
+        } else if ( o.fi != NULL ) {
+            o.fi( i, el );
+        } else if ( o.bi != NULL ) {
+            if ( o.bi( i, el ) == false ) { return false; }
+        } else if ( o.fv != NULL ) {
+            o.fv( o.v, el );
+        } else if ( o.bv != NULL ) {
+            if ( o.bv( o.v, el ) == false ) { return false; }
+        } else if ( o.fvi != NULL ) {
+            o.fvi( o.v, i, el );
+        } else if ( o.bvi != NULL ) {
+            if ( o.bvi( o.v, i, el ) == false ) { return false; }
+        }
+        if ( errno ) { return false; }
+    }
+    return true;
+}
+
+
+bool
+arrayc_{{funcname}}__eachp_(
+        ArrayC_{{typename}} const xs,
+        struct arrayc_{{funcname}}__eachp__options const o )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} const * const el = arrayc_{{funcname}}__getp( xs, i );
+        if ( ( o.where != NULL && !o.where( *el ) )
+          || ( o.where_not != NULL && o.where_not( *el ) ) ) {
+            continue;
+        }
+        errno = 0;
+        if ( o.f != NULL ) {
+            o.f( el );
+        } else if ( o.b != NULL ) {
+            if ( o.b( el ) == false ) { return false; }
+        } else if ( o.fi != NULL ) {
+            o.fi( i, el );
+        } else if ( o.bi != NULL ) {
+            if ( o.bi( i, el ) == false ) { return false; }
+        } else if ( o.fv != NULL ) {
+            o.fv( o.v, el );
+        } else if ( o.bv != NULL ) {
+            if ( o.bv( o.v, el ) == false ) { return false; }
+        } else if ( o.fvi != NULL ) {
+            o.fvi( o.v, i, el );
+        } else if ( o.bvi != NULL ) {
+            if ( o.bvi( o.v, i, el ) == false ) { return false; }
+        }
+        if ( errno ) { return false; }
+    }
+    return true;
+}
+
+
+bool
 arrayc_{{funcname}}__equal_by(
         ArrayC_{{typename}} const xs,
         ArrayC_{{typename}} const ys,
@@ -1166,77 +1240,131 @@ arrayc_{{funcname}}__replaced_by(
 }
 
 
-bool
-arrayc_{{funcname}}__each_(
+ord
+arrayc_{{funcname}}__compare_by(
         ArrayC_{{typename}} const xs,
-        struct arrayc_{{funcname}}__each__options const o )
+        ArrayC_{{typename}} const ys,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ),
+            cmp != NULL );
 
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        {{type}} const el = arrayc_{{funcname}}__get( xs, i );
-        if ( ( o.where != NULL && !o.where( el ) )
-          || ( o.where_not != NULL && o.where_not( el ) ) ) {
-            continue;
+    if ( arrayc_{{funcname}}__same( xs, ys ) ) { return EQ; }
+    for ( size_t i = 0; i < MIN( xs.length, ys.length ); i++ ) {
+        ord const c = cmp( xs.e[ i ], ys.e[ i ] );
+        if ( c != EQ ) { return c; }
+    }
+    // Here, all elements up to the minimum length are equal, so:
+    return size__compare( xs.length, ys.length );
+}
+
+
+bool
+arrayc_{{funcname}}__is_ascending_by(
+        ArrayC_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), cmp != NULL );
+
+    if ( xs.length >= 2 ) {
+        for ( size_t i = 0; i < xs.length - 1; i++ ) {
+            if ( cmp( xs.e[ i ], xs.e[ i + 1 ] ) == GT ) {
+                return false;
+            }
         }
-        errno = 0;
-        if ( o.f != NULL ) {
-            o.f( el );
-        } else if ( o.b != NULL ) {
-            if ( o.b( el ) == false ) { return false; }
-        } else if ( o.fi != NULL ) {
-            o.fi( i, el );
-        } else if ( o.bi != NULL ) {
-            if ( o.bi( i, el ) == false ) { return false; }
-        } else if ( o.fv != NULL ) {
-            o.fv( o.v, el );
-        } else if ( o.bv != NULL ) {
-            if ( o.bv( o.v, el ) == false ) { return false; }
-        } else if ( o.fvi != NULL ) {
-            o.fvi( o.v, i, el );
-        } else if ( o.bvi != NULL ) {
-            if ( o.bvi( o.v, i, el ) == false ) { return false; }
-        }
-        if ( errno ) { return false; }
     }
     return true;
 }
 
 
 bool
-arrayc_{{funcname}}__eachp_(
+arrayc_{{funcname}}__is_strictly_ascending_by(
         ArrayC_{{typename}} const xs,
-        struct arrayc_{{funcname}}__eachp__options const o )
+        ord ( * const cmp )( {{type}}, {{type}} ) )
 {
-    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), cmp != NULL );
 
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        {{type}} const * const el = arrayc_{{funcname}}__getp( xs, i );
-        if ( ( o.where != NULL && !o.where( *el ) )
-          || ( o.where_not != NULL && o.where_not( *el ) ) ) {
-            continue;
+    if ( xs.length >= 2 ) {
+        for ( size_t i = 0; i < xs.length - 1; i++ ) {
+            if ( cmp( xs.e[ i ], xs.e[ i + 1 ] ) != LT ) {
+                return false;
+            }
         }
-        errno = 0;
-        if ( o.f != NULL ) {
-            o.f( el );
-        } else if ( o.b != NULL ) {
-            if ( o.b( el ) == false ) { return false; }
-        } else if ( o.fi != NULL ) {
-            o.fi( i, el );
-        } else if ( o.bi != NULL ) {
-            if ( o.bi( i, el ) == false ) { return false; }
-        } else if ( o.fv != NULL ) {
-            o.fv( o.v, el );
-        } else if ( o.bv != NULL ) {
-            if ( o.bv( o.v, el ) == false ) { return false; }
-        } else if ( o.fvi != NULL ) {
-            o.fvi( o.v, i, el );
-        } else if ( o.bvi != NULL ) {
-            if ( o.bvi( o.v, i, el ) == false ) { return false; }
-        }
-        if ( errno ) { return false; }
     }
     return true;
+}
+
+
+bool
+arrayc_{{funcname}}__is_descending_by(
+        ArrayC_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), cmp != NULL );
+
+    if ( xs.length >= 2 ) {
+        for ( size_t i = 0; i < xs.length - 1; i++ ) {
+            if ( cmp( xs.e[ i ], xs.e[ i + 1 ] ) == LT ) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+bool
+arrayc_{{funcname}}__is_strictly_descending_by(
+        ArrayC_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), cmp != NULL );
+
+    if ( xs.length >= 2 ) {
+        for ( size_t i = 0; i < xs.length - 1; i++ ) {
+            if ( cmp( xs.e[ i ], xs.e[ i + 1 ] ) != GT ) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+{{type}}
+arrayc_{{funcname}}__minimum_by(
+        ArrayC_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length >= 1, cmp != NULL );
+
+    {{type}} min = xs.e[ 0 ];
+    for ( size_t i = 1; i < xs.length; i++ ) {
+        {{type}} const x = xs.e[ i ];
+        if ( cmp( x, min ) == LT ) {
+            min = x;
+        }
+    }
+    return min;
+}
+
+
+{{type}}
+arrayc_{{funcname}}__maximum_by(
+        ArrayC_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ), xs.length >= 1, cmp != NULL );
+
+    {{type}} max = xs.e[ 0 ];
+    for ( size_t i = 1; i < xs.length; i++ ) {
+        {{type}} const x = xs.e[ i ];
+        if ( cmp( x, max ) == GT ) {
+            max = x;
+        }
+    }
+    return max;
 }
 
 
@@ -1695,6 +1823,38 @@ arraym_{{funcname}}__set_last(
 
 
 void
+arraym_{{funcname}}__swap(
+        ArrayM_{{typename}} const xs,
+        size_t const i,
+        size_t const j )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ),
+            i < xs.length, j < xs.length );
+
+    {{type}} const i_el = xs.e[ i ];
+    xs.e[ i ] = xs.e[ j ];
+    xs.e[ j ] = i_el;
+}
+
+
+void
+arraym_{{funcname}}__swap_sequence(
+        ArrayM_{{typename}} const xs,
+        size_t const n,
+        size_t const start1,
+        size_t const start2 )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ),
+            size__add( start1, n ) <= xs.length,
+            size__add( start2, n ) <= xs.length );
+
+    for ( size_t i = 0; i < n; i++ ) {
+        arraym_{{funcname}}__swap( xs, start1 + i, start2 + i );
+    }
+}
+
+
+void
 arraym_{{funcname}}__memset(
         ArrayM_{{typename}} const xs,
         uchar const byte )
@@ -1745,6 +1905,37 @@ arraym_{{funcname}}__firstm(
     ASSERT( arraym_{{funcname}}__is_valid( xs ) );
 
     return maybe_{{funcname}}__from_ptr( arraym_{{funcname}}__firstp( xs ) );
+}
+
+
+{{type}}
+arraym_{{funcname}}__middle(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ),
+            arraym_{{funcname}}__isnt_empty( xs ) );
+
+    return *( arraym_{{funcname}}__middlep( xs ) );
+}
+
+
+{{type}} *
+arraym_{{funcname}}__middlep(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__getp( xs, xs.length / 2 );
+}
+
+
+Maybe_{{typename}}
+arraym_{{funcname}}__middlem(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return maybe_{{funcname}}__from_ptr( arraym_{{funcname}}__middlep( xs ) );
 }
 
 
@@ -2260,6 +2451,55 @@ arraym_{{funcname}}__pickv(
 
 
 bool
+arraym_{{funcname}}__each_(
+        ArrayM_{{typename}} const xs,
+        struct arrayc_{{funcname}}__each__options const o )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__each_(
+               arrayc_{{funcname}}__view_arraym( xs ), o );
+}
+
+
+bool
+arraym_{{funcname}}__eachp_(
+        ArrayM_{{typename}} const xs,
+        struct arraym_{{funcname}}__eachp__options const o )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    for ( size_t i = 0; i < xs.length; i++ ) {
+        {{type}} * const el = arraym_{{funcname}}__getp( xs, i );
+        if ( ( o.where != NULL && !o.where( *el ) )
+          || ( o.where_not != NULL && o.where_not( *el ) ) ) {
+            continue;
+        }
+        errno = 0;
+        if ( o.f != NULL ) {
+            o.f( el );
+        } else if ( o.b != NULL ) {
+            if ( o.b( el ) == false ) { return false; }
+        } else if ( o.fi != NULL ) {
+            o.fi( i, el );
+        } else if ( o.bi != NULL ) {
+            if ( o.bi( i, el ) == false ) { return false; }
+        } else if ( o.fv != NULL ) {
+            o.fv( o.v, el );
+        } else if ( o.bv != NULL ) {
+            if ( o.bv( o.v, el ) == false ) { return false; }
+        } else if ( o.fvi != NULL ) {
+            o.fvi( o.v, i, el );
+        } else if ( o.bvi != NULL ) {
+            if ( o.bvi( o.v, i, el ) == false ) { return false; }
+        }
+        if ( errno ) { return false; }
+    }
+    return true;
+}
+
+
+bool
 arraym_{{funcname}}__equal_by(
         ArrayM_{{typename}} const xs,
         ArrayM_{{typename}} const ys,
@@ -2516,53 +2756,258 @@ arraym_{{funcname}}__replaced_by(
 }
 
 
-bool
-arraym_{{funcname}}__each_(
+ord
+arraym_{{funcname}}__compare_by(
         ArrayM_{{typename}} const xs,
-        struct arrayc_{{funcname}}__each__options const o )
+        ArrayM_{{typename}} const ys,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+    ASSERT( arraym_{{funcname}}__is_valid( xs ),
+            arraym_{{funcname}}__is_valid( ys ),
+            cmp != NULL );
 
-    return arrayc_{{funcname}}__each_(
-               arrayc_{{funcname}}__view_arraym( xs ), o );
+    return arrayc_{{funcname}}__compare_by(
+               arrayc_{{funcname}}__view_arraym( xs ),
+               arrayc_{{funcname}}__view_arraym( ys ),
+               cmp );
 }
 
 
 bool
-arraym_{{funcname}}__eachp_(
+arraym_{{funcname}}__is_ascending_by(
         ArrayM_{{typename}} const xs,
-        struct arraym_{{funcname}}__eachp__options const o )
+        ord ( * const cmp )( {{type}}, {{type}} ) )
 {
-    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), cmp != NULL );
 
-    for ( size_t i = 0; i < xs.length; i++ ) {
-        {{type}} * const el = arraym_{{funcname}}__getp( xs, i );
-        if ( ( o.where != NULL && !o.where( *el ) )
-          || ( o.where_not != NULL && o.where_not( *el ) ) ) {
-            continue;
-        }
-        errno = 0;
-        if ( o.f != NULL ) {
-            o.f( el );
-        } else if ( o.b != NULL ) {
-            if ( o.b( el ) == false ) { return false; }
-        } else if ( o.fi != NULL ) {
-            o.fi( i, el );
-        } else if ( o.bi != NULL ) {
-            if ( o.bi( i, el ) == false ) { return false; }
-        } else if ( o.fv != NULL ) {
-            o.fv( o.v, el );
-        } else if ( o.bv != NULL ) {
-            if ( o.bv( o.v, el ) == false ) { return false; }
-        } else if ( o.fvi != NULL ) {
-            o.fvi( o.v, i, el );
-        } else if ( o.bvi != NULL ) {
-            if ( o.bvi( o.v, i, el ) == false ) { return false; }
-        }
-        if ( errno ) { return false; }
+    return arrayc_{{funcname}}__is_ascending_by(
+               arrayc_{{funcname}}__view_arraym( xs ), cmp );
+}
+
+
+bool
+arraym_{{funcname}}__is_strictly_ascending_by(
+        ArrayM_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), cmp != NULL );
+
+    return arrayc_{{funcname}}__is_strictly_ascending_by(
+               arrayc_{{funcname}}__view_arraym( xs ), cmp );
+}
+
+
+bool
+arraym_{{funcname}}__is_descending_by(
+        ArrayM_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), cmp != NULL );
+
+    return arrayc_{{funcname}}__is_descending_by(
+               arrayc_{{funcname}}__view_arraym( xs ), cmp );
+}
+
+
+bool
+arraym_{{funcname}}__is_strictly_descending_by(
+        ArrayM_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), cmp != NULL );
+
+    return arrayc_{{funcname}}__is_strictly_descending_by(
+               arrayc_{{funcname}}__view_arraym( xs ), cmp );
+}
+
+
+{{type}}
+arraym_{{funcname}}__minimum_by(
+        ArrayM_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), xs.length >= 1, cmp != NULL );
+
+    return arrayc_{{funcname}}__minimum_by(
+               arrayc_{{funcname}}__view_arraym( xs ), cmp );
+}
+
+
+{{type}}
+arraym_{{funcname}}__maximum_by(
+        ArrayM_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), xs.length >= 1, cmp != NULL );
+
+    return arrayc_{{funcname}}__maximum_by(
+               arrayc_{{funcname}}__view_arraym( xs ), cmp );
+}
+
+
+static
+void
+swap_if_gt(
+        ArrayM_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ),
+        size_t const i,
+        size_t const j )
+{
+    if ( cmp( xs.e[ i ], xs.e[ j ] ) == GT ) {
+        arraym_{{funcname}}__swap( xs, i, j );
     }
-    return true;
 }
+
+
+typedef struct size_pair {
+    size_t left;
+    size_t right;
+} SizePair;
+
+
+static
+SizePair
+quicksort_partition(
+        ArrayM_{{typename}} const xs,
+        {{type}} const pivot,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arraym_{{typename}}__is_valid( xs ), cmp != NULL );
+
+    if ( xs.length == 0 ) { return ( SizePair ){ 0, 0 }; }
+
+    size_t eql = 0;
+    size_t lt = 0;
+    size_t gt = xs.length - 1;
+    size_t eqr = xs.length - 1;
+
+    while ( true ) {
+
+        // Invariant of ordering, with respect to the pivot, within `xs`:
+        //      _______________________________________
+        //     | == |     <     |  ?  |     >     | == |
+        //      -----^-----------^---^-----------^-----
+        //          eql         lt   gt         eqr
+        ASSERT( eql <= lt, lt <= gt, gt <= eqr, eqr < xs.length );
+
+        // Increment `lt` up to the index of the first element greater
+        // than the pivot. Move any elements equal to the pivot to the
+        // left-hand equals section.
+        for ( ; lt <= gt; lt++ ) {
+            ord const c = cmp( xs.e[ lt ], pivot );
+            if ( c == GT ) { break; }
+            if ( c == EQ ) {
+                arraym_{{funcname}}__swap( xs, lt, eql );
+                eql++;
+            }
+        }
+
+        // Decrement `gt` down to the index of the first element less
+        // than the pivot. Move any elements equal to the pivot to the
+        // right-equals section.
+        for ( ; gt >= lt; gt-- ) {
+            ord const c = cmp( xs.e[ gt ], pivot );
+            if ( c == LT ) { break; }
+            if ( c == EQ ) {
+                arraym_{{funcname}}__swap( xs, gt, eqr );
+                eqr--;
+            }
+        }
+
+        if ( lt > gt ) {
+            // Then there are no more unsorted elements.
+            break;
+        }
+
+        // Here, `xs[ lt ] > pivot` and `xs[ gt ] < pivot`, so swap each
+        // of those into the other section, and move onto the next
+        // elements.
+        arraym_{{funcname}}__swap( xs, lt, gt );
+        lt++;
+        gt--;
+
+    }
+
+    // `xs` is now ordered, with respect to the pivot, as such:
+    //      _____________________________________
+    //     | == |      <      |      >      | == |
+    //      -----^-----------^-^-----------^-----
+    //          eql         gt lt         eqr
+    ASSERT( eql <= gt, gt == lt - 1, lt <= eqr, eqr < xs.length );
+
+    size_t const nlt = lt - eql;  // The size of the less-than section.
+    size_t const ngt = eqr - gt;  // The size of the greater-than section.
+
+    // Swap the left-equals section with the right-hand side of the
+    // less-than section:
+    size_t const nleft = MIN( eql, nlt );
+    ASSERT( nleft <= lt );
+    arraym_{{funcname}}__swap_sequence( xs, nleft, 0, lt - nleft );
+
+    // Swap the right-equals section with the left-hand side of the
+    // greater-than section:
+    size_t const nright = MIN( xs.length - eqr, ngt );
+    ASSERT( nright <= xs.length );
+    arraym_{{funcname}}__swap_sequence( xs, nright, lt, xs.length - nright );
+
+    // Above, we take the minimum of the section sizes so that we only move
+    // the smallest section (e.g. move the less-than section if it's smaller
+    // than the left-equals section).
+
+    // `xs` is now ordered, with respect to the pivot, as such:
+    //      ______________________________________
+    //     |      <      |    ==    |      >      |
+    //      --------------------------------------
+    //     <---- nlt ---->          <---- ngt ---->
+
+    // Return the sizes of the less-than and greater-than sections:
+    return ( SizePair ){ nlt, ngt };
+}
+
+
+void
+arraym_{{funcname}}__quicksort_by(
+        ArrayM_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), cmp != NULL );
+
+    {{type}} pivot;
+    SizePair p;
+    switch ( xs.length ) {
+    case 0: case 1:
+        break; // Already sorted
+    // Optimizations for small `n` using sorting networks generated via:
+    // <http://pages.ripco.net/~jgamble/nw.html>
+    case 2:
+        swap_if_gt( xs, cmp,  0, 1 );
+        break;
+    case 3:
+        swap_if_gt( xs, cmp,  1, 2 );
+        swap_if_gt( xs, cmp,  0, 2 );
+        swap_if_gt( xs, cmp,  0, 1 );
+        break;
+    case 4:
+        swap_if_gt( xs, cmp,  0, 1 );
+        swap_if_gt( xs, cmp,  2, 3 );
+        swap_if_gt( xs, cmp,  0, 2 );
+        swap_if_gt( xs, cmp,  1, 3 );
+        swap_if_gt( xs, cmp,  1, 2 );
+        break;
+    default:
+        pivot = arraym_{{funcname}}__middle( xs );
+        p = quicksort_partition( xs, pivot, cmp );
+        // Sort the less-than section:
+        arraym_{{funcname}}__quicksort_by(
+                arraym_{{funcname}}__take( xs, p.left ), cmp );
+        // Sort the greater-than section:
+        arraym_{{funcname}}__quicksort_by(
+                arraym_{{funcname}}__take_end( xs, p.right ), cmp );
+        break;
+    }
+}
+
+
 
 
 {% if 'EQ' in typeclasses %}
