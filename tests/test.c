@@ -1,5 +1,7 @@
 
+#include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <libmacro/assert.h>
 #include <libmacro/debug.h>
@@ -246,6 +248,104 @@ test_char( void )
 }
 
 
+static
+void
+test_ord( void )
+{
+    ASSERT(
+        arrayc_uchar__compare( ARRAYC_UCHAR( 1, 2, 3 ),
+                               ARRAYC_UCHAR( 1, 2, 3 ) ) == EQ,
+        arrayc_uchar__compare( arrayc_uchar__new_empty(),
+                               ARRAYC_UCHAR( 1, 2, 3 ) ) == LT,
+        arrayc_uchar__compare( ARRAYC_UCHAR( 1, 2, 3 ),
+                               arrayc_uchar__new_empty() ) == GT,
+        arrayc_uchar__compare( ARRAYC_UCHAR( 1, 2, 3 ),
+                               ARRAYC_UCHAR( 1, 2, 4 ) ) == LT,
+        arrayc_uchar__compare( arrayc_uchar__new_empty(),
+                               arrayc_uchar__new_empty() ) == EQ,
+        arrayc_uchar__is_ascending( arrayc_uchar__new_empty() ),
+        arrayc_uchar__is_ascending( ARRAYC_UCHAR( 1, 2, 3 ) ),
+        !arrayc_uchar__is_ascending( ARRAYC_UCHAR( 1, 3, 2 ) ),
+        arrayc_uchar__is_descending( arrayc_uchar__new_empty() ),
+        arrayc_uchar__is_descending( ARRAYC_UCHAR( 3, 2, 1) ),
+        !arrayc_uchar__is_descending( ARRAYC_UCHAR( 3, 2, 4 ) ),
+        arrayc_uchar__minimum( ARRAYC_UCHAR( 8, 25, 99, 31, 99 ) ) == 8,
+        arrayc_uchar__minimum( ARRAYC_UCHAR( 0 ) ) == 0,
+        arrayc_uchar__maximum( ARRAYC_UCHAR( 8, 25, 99, 31, 99 ) ) == 99,
+        arrayc_uchar__maximum( ARRAYC_UCHAR( 0 ) ) == 0
+    );
+    { // Sort an empty array:
+        ArrayM_uchar const xs = arraym_uchar__new_empty();
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__is_empty( xs ) );
+    }
+    { // Sort a singleton array:
+        ArrayM_uchar const xs = ARRAYM_UCHAR( 37 );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__equal_els( xs, 37 ) );
+    }
+    { // Sort a two-element array:
+        ArrayM_uchar const xs = ARRAYM_UCHAR( 32, 15 );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__equal_els( xs, 15, 32 ) );
+    }
+    { // Sort a three-element array:
+        ArrayM_uchar const xs = ARRAYM_UCHAR( 8, 32, 15 );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__equal_els( xs, 8, 15, 32 ) );
+    }
+    { // Sort a four-element array:
+        ArrayM_uchar const xs = ARRAYM_UCHAR( 8, 32, 15, 70 );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__equal_els( xs, 8, 15, 32, 70 ) );
+    }
+    { // Sort a five-element array:
+        ArrayM_uchar const xs = ARRAYM_UCHAR( 8, 32, 1, 15, 70 );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__equal_els( xs, 1, 8, 15, 32, 70 ) );
+    }
+    { // Sort a five-element array, increasing order:
+        ArrayM_uchar const xs = ARRAYM_UCHAR( 1, 2, 3, 4, 5 );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__equal_els( xs, 1, 2, 3, 4, 5 ) );
+    }
+    { // Sort a five-element array, decreasing order:
+        ArrayM_uchar const xs = ARRAYM_UCHAR( 5, 4, 3, 2, 1 );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__equal_els( xs, 1, 2, 3, 4, 5 ) );
+    }
+}
+
+
+static size_t gen_array_size = 32;
+
+
+static
+void
+gen_array_els(
+        ArrayM_uchar * const xs )
+{
+    xs->length = rand() % gen_array_size;
+    for ( size_t i = 0; i < xs->length; i++ ) {
+        xs->e[ i ] = rand() % UCHAR_MAX;
+    }
+}
+
+
+static
+void
+gentest_sort( size_t const iters )
+{
+    ArrayM_uchar xs = arraym_uchar__new_alloc( gen_array_size );
+    for ( size_t i = 0; i < iters; i++ ) {
+        gen_array_els( &xs );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__is_ascending( xs ) );
+    }
+    arraym_uchar__free( &xs );
+}
+
+
 int
 main( void )
 {
@@ -257,6 +357,8 @@ main( void )
     test_replace();             puts( "  replacement tests passed" );
     test_null();                puts( "  NULL typeclass tests passed" );
     test_char();                puts( "  CHAR typeclass tests passed" );
-    puts( "All unit tests passed!" );
+    test_ord();                 puts( "  ORD typeclass tests passed" );
+    puts( "Running generative tests..." );
+    gentest_sort( 1000 );       puts( "  sorting generative tests passed" );
 }
 

@@ -156,6 +156,14 @@ arrayc_{{funcname}}__new(
 
 
 ArrayC_{{typename}}
+arrayc_{{funcname}}__new_empty(
+        void )
+{
+    return arrayc_{{funcname}}__new( NULL, 0 );
+}
+
+
+ArrayC_{{typename}}
 arrayc_{{funcname}}__view_arraym(
         ArrayM_{{typename}} const xs )
 {
@@ -1398,6 +1406,14 @@ arraym_{{funcname}}__new_view(
     } else {
         return ( ArrayM_{{typename}} ){ .e = elements, .length = length };
     }
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new_empty(
+        void )
+{
+    return arraym_{{funcname}}__new( NULL, 0 );
 }
 
 
@@ -2879,6 +2895,7 @@ quicksort_partition(
     size_t eql = 0;
     size_t lt = 0;
     size_t gt = xs.length - 1;
+    bool gt_neg_1 = false;
     size_t eqr = xs.length - 1;
 
     while ( true ) {
@@ -2888,7 +2905,9 @@ quicksort_partition(
         //     | == |     <     |  ?  |     >     | == |
         //      -----^-----------^---^-----------^-----
         //          eql         lt   gt         eqr
-        ASSERT( eql <= lt, lt <= gt, gt <= eqr, eqr < xs.length );
+
+        // Note that we must perform awkward checks for the bound values of
+        // `size_t` on `lt` and `gt` to avoid overflow and underflow.
 
         // Increment `lt` up to the index of the first element greater
         // than the pivot. Move any elements equal to the pivot to the
@@ -2900,6 +2919,7 @@ quicksort_partition(
                 arraym_{{funcname}}__swap( xs, lt, eql );
                 eql++;
             }
+            if ( lt == SIZE_MAX ) { break; }
         }
 
         // Decrement `gt` down to the index of the first element less
@@ -2912,9 +2932,10 @@ quicksort_partition(
                 arraym_{{funcname}}__swap( xs, gt, eqr );
                 eqr--;
             }
+            if ( gt == 0 ) { gt_neg_1 = true; break; }
         }
 
-        if ( lt > gt ) {
+        if ( lt > gt || gt_neg_1 == true ) {
             // Then there are no more unsorted elements.
             break;
         }
@@ -2923,7 +2944,10 @@ quicksort_partition(
         // of those into the other section, and move onto the next
         // elements.
         arraym_{{funcname}}__swap( xs, lt, gt );
+        // `lt` can't be `SIZE_MAX` here because `gt <= SIZE_MAX - 1`, so if
+        // `lt == SIZE_MAX`, the loop will have been broken at `lt > gt`.
         lt++;
+        if ( gt == 0 ) { gt_neg_1 = true; break; }
         gt--;
 
     }
@@ -2933,10 +2957,11 @@ quicksort_partition(
     //     | == |      <      |      >      | == |
     //      -----^-----------^-^-----------^-----
     //          eql         gt lt         eqr
-    ASSERT( eql <= gt, gt == lt - 1, lt <= eqr, eqr < xs.length );
 
-    size_t const nlt = lt - eql;  // The size of the less-than section.
-    size_t const ngt = eqr - gt;  // The size of the greater-than section.
+    // The size of the less-than section:
+    size_t const nlt = lt - eql;
+    // The size of the greater-than section:
+    size_t const ngt = eqr - gt + gt_neg_1;
 
     // Swap the left-equals section with the right-hand side of the
     // less-than section:
@@ -2946,7 +2971,7 @@ quicksort_partition(
 
     // Swap the right-equals section with the left-hand side of the
     // greater-than section:
-    size_t const nright = MIN( xs.length - eqr, ngt );
+    size_t const nright = MIN( xs.length - 1 - eqr, ngt );
     ASSERT( nright <= xs.length );
     arraym_{{funcname}}__swap_sequence( xs, nright, lt, xs.length - nright );
 
@@ -2961,7 +2986,7 @@ quicksort_partition(
     //     <---- nlt ---->          <---- ngt ---->
 
     // Return the sizes of the less-than and greater-than sections:
-    return ( SizePair ){ nlt, ngt };
+    return ( SizePair ){ .left = nlt, .right = ngt };
 }
 
 
@@ -3391,6 +3416,181 @@ arraym_{{funcname}}__replaced(
 
 
 {% endif %} {# EQ #}
+
+
+
+
+{% if 'ORD' in typeclasses %}
+
+
+static
+ord
+cmpf(
+        {{type}} const x,
+        {{type}} const y )
+{
+    // `__compare()` might be defined as a type-generic macro:
+    return {{funcname}}__compare( x, y );
+}
+
+
+ord
+arrayc_{{funcname}}__compare(
+        ArrayC_{{typename}} const xs,
+        ArrayC_{{typename}} const ys )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            arrayc_{{funcname}}__is_valid( ys ) );
+
+    return arrayc_{{funcname}}__compare_by( xs, ys, cmpf );
+}
+
+
+bool
+arrayc_{{funcname}}__is_ascending(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__is_ascending_by( xs, cmpf );
+}
+
+
+bool
+arrayc_{{funcname}}__is_strictly_ascending(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__is_strictly_ascending_by( xs, cmpf );
+}
+
+
+bool
+arrayc_{{funcname}}__is_descending(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__is_descending_by( xs, cmpf );
+}
+
+
+bool
+arrayc_{{funcname}}__is_strictly_descending(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__is_strictly_descending_by( xs, cmpf );
+}
+
+
+{{type}}
+arrayc_{{funcname}}__minimum(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__minimum_by( xs, cmpf );
+}
+
+
+{{type}}
+arrayc_{{funcname}}__maximum(
+        ArrayC_{{typename}} const xs )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ) );
+
+    return arrayc_{{funcname}}__maximum_by( xs, cmpf );
+}
+
+
+ord
+arraym_{{funcname}}__compare(
+        ArrayM_{{typename}} const xs,
+        ArrayM_{{typename}} const ys )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ),
+            arraym_{{funcname}}__is_valid( ys ) );
+
+    return arraym_{{funcname}}__compare_by( xs, ys, cmpf );
+}
+
+
+bool
+arraym_{{funcname}}__is_ascending(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__is_ascending_by( xs, cmpf );
+}
+
+
+bool
+arraym_{{funcname}}__is_strictly_ascending(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__is_strictly_ascending_by( xs, cmpf );
+}
+
+
+bool
+arraym_{{funcname}}__is_descending(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__is_descending_by( xs, cmpf );
+}
+
+
+bool
+arraym_{{funcname}}__is_strictly_descending(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__is_strictly_descending_by( xs, cmpf );
+}
+
+
+{{type}}
+arraym_{{funcname}}__minimum(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__minimum_by( xs, cmpf );
+}
+
+
+{{type}}
+arraym_{{funcname}}__maximum(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__maximum_by( xs, cmpf );
+}
+
+
+void
+arraym_{{funcname}}__quicksort(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    arraym_{{funcname}}__quicksort_by( xs, cmpf );
+}
+
+
+{% endif %}
+
+
 
 
 {% if 'NULL' in typeclasses %}

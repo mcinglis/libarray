@@ -62,6 +62,11 @@ arrayc_{{funcname}}__new(
 
 
 ArrayC_{{typename}}
+arrayc_{{funcname}}__new_empty(
+        void );
+
+
+ArrayC_{{typename}}
 arrayc_{{funcname}}__view_arraym(
         ArrayM_{{typename}} );
 
@@ -636,6 +641,11 @@ ArrayM_{{typename}}
 arraym_{{funcname}}__new_view(
         {{type}} * elements,
         size_t length );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__new_empty(
+        void );
 
 
 ArrayM_{{typename}}
@@ -1606,6 +1616,91 @@ arraym_{{funcname}}__replaced(
 
 
 {% endif %} {# EQ #}
+
+
+
+
+{% if 'ORD' in typeclasses %}
+
+
+ord
+arrayc_{{funcname}}__compare(
+        ArrayC_{{typename}} xs,
+        ArrayC_{{typename}} ys );
+
+
+bool
+arrayc_{{funcname}}__is_ascending(
+        ArrayC_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__is_strictly_ascending(
+        ArrayC_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__is_descending(
+        ArrayC_{{typename}} );
+
+
+bool
+arrayc_{{funcname}}__is_strictly_descending(
+        ArrayC_{{typename}} );
+
+
+{{type}}
+arrayc_{{funcname}}__minimum(
+        ArrayC_{{typename}} );
+
+
+{{type}}
+arrayc_{{funcname}}__maximum(
+        ArrayC_{{typename}} );
+
+
+ord
+arraym_{{funcname}}__compare(
+        ArrayM_{{typename}} xs,
+        ArrayM_{{typename}} ys );
+
+
+bool
+arraym_{{funcname}}__is_ascending(
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_strictly_ascending(
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_descending(
+        ArrayM_{{typename}} );
+
+
+bool
+arraym_{{funcname}}__is_strictly_descending(
+        ArrayM_{{typename}} );
+
+
+{{type}}
+arraym_{{funcname}}__minimum(
+        ArrayM_{{typename}} );
+
+
+{{type}}
+arraym_{{funcname}}__maximum(
+        ArrayM_{{typename}} );
+
+
+void
+arraym_{{funcname}}__quicksort(
+        ArrayM_{{typename}} );
+
+
+{% endif %}
 
 
 
