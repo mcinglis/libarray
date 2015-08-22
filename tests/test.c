@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <libmacro/assert.h>
 #include <libmacro/debug.h>
@@ -280,32 +281,32 @@ test_ord( void )
         ASSERT( arraym_uchar__is_empty( xs ) );
     }
     { // Sort a singleton array:
-        ArrayM_uchar const xs = ARRAYM_UCHAR( 37 );
+        ArrayM_uchar const xs = ARRAY_UCHAR( 37 );
         arraym_uchar__quicksort( xs );
         ASSERT( arraym_uchar__equal_els( xs, 37 ) );
     }
     { // Sort a two-element array:
-        ArrayM_uchar const xs = ARRAYM_UCHAR( 32, 15 );
+        ArrayM_uchar const xs = ARRAY_UCHAR( 32, 15 );
         arraym_uchar__quicksort( xs );
         ASSERT( arraym_uchar__equal_els( xs, 15, 32 ) );
     }
     { // Sort a three-element array:
-        ArrayM_uchar const xs = ARRAYM_UCHAR( 8, 32, 15 );
+        ArrayM_uchar const xs = ARRAY_UCHAR( 8, 32, 15 );
         arraym_uchar__quicksort( xs );
         ASSERT( arraym_uchar__equal_els( xs, 8, 15, 32 ) );
     }
     { // Sort a four-element array:
-        ArrayM_uchar const xs = ARRAYM_UCHAR( 8, 32, 15, 70 );
+        ArrayM_uchar const xs = ARRAY_UCHAR( 8, 32, 15, 70 );
         arraym_uchar__quicksort( xs );
         ASSERT( arraym_uchar__equal_els( xs, 8, 15, 32, 70 ) );
     }
     { // Sort a five-element array:
-        ArrayM_uchar const xs = ARRAYM_UCHAR( 8, 32, 1, 15, 70 );
+        ArrayM_uchar const xs = ARRAY_UCHAR( 8, 32, 1, 15, 70 );
         arraym_uchar__quicksort( xs );
         ASSERT( arraym_uchar__equal_els( xs, 1, 8, 15, 32, 70 ) );
     }
     { // Sort a five-element array, increasing order:
-        ArrayM_uchar const xs = ARRAYM_UCHAR( 1, 2, 3, 4, 5 );
+        ArrayM_uchar const xs = ARRAY_UCHAR( 1, 2, 3, 4, 5 );
         arraym_uchar__quicksort( xs );
         ASSERT( arraym_uchar__equal_els( xs, 1, 2, 3, 4, 5 ) );
     }
@@ -313,6 +314,11 @@ test_ord( void )
         ArrayM_uchar const xs = ARRAYM_UCHAR( 5, 4, 3, 2, 1 );
         arraym_uchar__quicksort( xs );
         ASSERT( arraym_uchar__equal_els( xs, 1, 2, 3, 4, 5 ) );
+    }
+    { // Sort a five-element array, equal elements:
+        ArrayM_uchar const xs = ARRAYM_UCHAR( 8, 8, 8, 8, 8 );
+        arraym_uchar__quicksort( xs );
+        ASSERT( arraym_uchar__equal_els( xs, 8, 8, 8, 8, 8 ) );
     }
 }
 
@@ -359,6 +365,7 @@ main( void )
     test_char();                puts( "  CHAR typeclass tests passed" );
     test_ord();                 puts( "  ORD typeclass tests passed" );
     puts( "Running generative tests..." );
-    gentest_sort( 1000 );       puts( "  sorting generative tests passed" );
+    srand( time( NULL ) );
+    gentest_sort( 10000 );      puts( "  sorting generative tests passed" );
 }
 
