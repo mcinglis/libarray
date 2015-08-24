@@ -3033,6 +3033,19 @@ arraym_{{funcname}}__quicksort_by(
 }
 
 
+ArrayM_{{typename}}
+arraym_{{funcname}}__quicksorted_by(
+        ArrayM_{{typename}} const xs,
+        ord ( * const cmp )( {{type}}, {{type}} ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), cmp != NULL );
+
+    ArrayM_{{typename}} const new = arraym_{{funcname}}__copy_arraym( xs );
+    if ( errno ) { return new; }
+    arraym_{{funcname}}__quicksort_by( new, cmp );
+    return new;
+}
+
 
 
 {% if 'EQ' in typeclasses %}
@@ -3585,6 +3598,16 @@ arraym_{{funcname}}__quicksort(
     ASSERT( arraym_{{funcname}}__is_valid( xs ) );
 
     arraym_{{funcname}}__quicksort_by( xs, cmpf );
+}
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__quicksorted(
+        ArrayM_{{typename}} const xs )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ) );
+
+    return arraym_{{funcname}}__quicksorted_by( xs, cmpf );
 }
 
 

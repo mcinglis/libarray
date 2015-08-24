@@ -1385,6 +1385,12 @@ arraym_{{funcname}}__quicksort_by(
         ord ( * cmp )( {{type}}, {{type}} ) );
 
 
+ArrayM_{{typename}}
+arraym_{{funcname}}__quicksorted_by(
+        ArrayM_{{typename}} xs,
+        ord ( * cmp )( {{type}}, {{type}} ) );
+
+
 
 
 {% if 'EQ' in typeclasses %}
@@ -1697,6 +1703,11 @@ arraym_{{funcname}}__maximum(
 
 void
 arraym_{{funcname}}__quicksort(
+        ArrayM_{{typename}} );
+
+
+ArrayM_{{typename}}
+arraym_{{funcname}}__quicksorted(
         ArrayM_{{typename}} );
 
 
