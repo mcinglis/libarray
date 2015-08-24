@@ -2888,7 +2888,7 @@ quicksort_partition(
         {{type}} const pivot,
         ord ( * const cmp )( {{type}}, {{type}} ) )
 {
-    ASSERT( arraym_{{typename}}__is_valid( xs ), cmp != NULL );
+    ASSERT( arraym_{{funcname}}__is_valid( xs ), cmp != NULL );
 
     if ( xs.length == 0 ) { return ( SizePair ){ 0, 0 }; }
 
