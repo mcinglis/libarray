@@ -1521,7 +1521,8 @@ arraym_{{funcname}}__reallocz_with(
                                            sizeof ( {{type}} ) );
         if ( errno ) { return; }
         if ( new_length > xs->length ) {
-            memset( new_e + xs->length, 0, new_length - xs->length );
+            memset( new_e + xs->length, 0,
+                    ( new_length - xs->length ) * sizeof ( {{type}} ) );
         }
         *xs = ( ArrayM_{{typename}} ){ .e = new_e, .length = new_length };
     }

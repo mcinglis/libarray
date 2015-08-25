@@ -82,10 +82,13 @@ void
 test_realloc( void )
 {
     {
-        ArrayM_short xs = arraym_short__new_els( 1, 2, 3 );
-        ASSERT( xs.length == 3, arraym_short__equal_els( xs, 1, 2, 3 ) );
-        arraym_short__reallocz( &xs, 5 );
-        ASSERT( xs.length == 5, arraym_short__equal_els( xs, 1, 2, 3, 0, 0 ) );
+        ArrayM_uintmax xs = arraym_uintmax__new_els( 1, 2, 3 );
+        ASSERT( xs.length == 3, arraym_uintmax__equal_els( xs, 1, 2, 3 ) );
+        arraym_uintmax__reallocz( &xs, 100 );
+        ASSERT( xs.length == 100,
+                arraym_uintmax__equal_els( arraym_uintmax__take( xs, 3 ),
+                                           1, 2, 3 ),
+                arraym_uintmax__all_null( arraym_uintmax__drop( xs, 3 ) ) );
     }
 }
 
