@@ -1494,6 +1494,41 @@ arraym_{{funcname}}__realloc_with(
 
 
 void
+arraym_{{funcname}}__reallocz(
+        ArrayM_{{typename}} * const xs,
+        size_t const new_length )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    arraym_{{funcname}}__reallocz_with( xs, new_length, NULL );
+}
+
+
+void
+arraym_{{funcname}}__reallocz_with(
+        ArrayM_{{typename}} * const xs,
+        size_t const new_length,
+        void ( * const freer )( {{type}} * lost_el ) )
+{
+    ASSERT( xs != NULL, arraym_{{funcname}}__is_valid( *xs ) );
+
+    errno = 0;
+    arraym_{{funcname}}__eachp( arraym_{{funcname}}__drop( *xs, new_length ),
+                                .f = freer );
+    if ( errno ) { return; }
+    if ( new_length != xs->length ) {
+        {{type}} * const new_e = reallocn( xs->e, new_length,
+                                           sizeof ( {{type}} ) );
+        if ( errno ) { return; }
+        if ( new_length > xs->length ) {
+            memset( new_e, 0, new_length - xs->length );
+        }
+        *xs = ( ArrayM_{{typename}} ){ .e = new_e, .length = new_length };
+    }
+}
+
+
+void
 arraym_{{funcname}}__memcpy_from(
         ArrayM_{{typename}} const to,
         void const * const from,
