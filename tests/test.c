@@ -79,6 +79,19 @@ test_equal_by( void )
 
 static
 void
+test_realloc( void )
+{
+    {
+        ArrayM_short xs = arraym_short__new_els( 1, 2, 3 );
+        ASSERT( xs.length == 3, arraym_short__equal_els( xs, 1, 2, 3 ) );
+        arraym_short__reallocz( &xs, 5 );
+        ASSERT( xs.length == 5, arraym_short__equal_els( xs, 1, 2, 3, 0, 0 ) );
+    }
+}
+
+
+static
+void
 test_logic( void )
 {
     {
@@ -359,6 +372,7 @@ main( void )
     test_macro_constructor();   puts( "  macro constructor tests passed" );
     test_equal();               puts( "  equality tests passed" );
     test_equal_by();            puts( "  custom equality tests passed" );
+    test_realloc();             puts( "  reallocation tests passed" );
     test_logic();               puts( "  logic tests passed" );
     test_replace();             puts( "  replacement tests passed" );
     test_null();                puts( "  NULL typeclass tests passed" );
