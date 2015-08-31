@@ -71,5 +71,17 @@ typedef struct arraym_{{funcname}} {
     ( ArrayM_{{typename}} ) ARRAY_{{macroname}}( __VA_ARGS__ )
 
 
+#define ARRAYC_{{macroname}}__FOR_EACH( XS, EL ) \
+    for ( {{type}} const * EL = ( XS ).e; \
+          EL != ( XS ).e + ( XS ).length; \
+          EL++ )
+
+
+#define ARRAYM_{{macroname}}__FOR_EACH( XS, EL ) \
+    for ( {{type}} * EL = ( XS ).e; \
+          EL != ( XS ).e + ( XS ).length; \
+          EL++ )
+
+
 #endif // ifndef LIBARRAY_DEF_ARRAY_{{macroname}}_H
 

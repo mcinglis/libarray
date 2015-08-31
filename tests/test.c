@@ -18,19 +18,34 @@
 
 static
 void
-test_macro_constructor( void )
+test_macros( void )
 {
-    ArrayC_short const xs = ARRAY_SHORT( 89, 2, 77 );
-    ASSERT( xs.length == 3,
-            xs.e[ 0 ] == 89, xs.e[ 1 ] == 2, xs.e[ 2 ] == 77 );
-
-    int y = 3;
-    ArrayM_ptrm_int const ys = ARRAY_PTRM_INT( &( int ){ 1 }, &y,
-                                               &( int ){ 54 } );
-    ASSERT( ys.length == 3,
-            *( ys.e[ 0 ] ) == 1,
-            ys.e[ 1 ] == &y, y == 3,
-            *( ys.e[ 2 ] ) == 54 );
+    {
+        ArrayC_short const xs = ARRAY_SHORT( 89, 2, 77 );
+        ASSERT( xs.length == 3,
+                xs.e[ 0 ] == 89, xs.e[ 1 ] == 2, xs.e[ 2 ] == 77 );
+    } {
+        int y = 3;
+        ArrayM_ptrm_int const ys = ARRAY_PTRM_INT( &( int ){ 1 }, &y,
+                                                   &( int ){ 54 } );
+        ASSERT( ys.length == 3,
+                *( ys.e[ 0 ] ) == 1, ys.e[ 1 ] == &y, *( ys.e[ 2 ] ) == 54,
+                y == 3 );
+    } {
+        short sum = 0;
+        ArrayC_short const xs = ARRAY_SHORT( 1, 2, 3, 4, 5 );
+        ARRAYC_SHORT__FOR_EACH( xs, x ) {
+            sum += *x;
+        }
+        ASSERT( sum == 15 );
+    } {
+        short sum = 0;
+        ArrayM_short const xs = ARRAY_SHORT( 1, 2, 3, 4, 5 );
+        ARRAYM_SHORT__FOR_EACH( xs, x ) {
+            sum += *x;
+        }
+        ASSERT( sum == 15 );
+    }
 }
 
 
@@ -372,7 +387,7 @@ int
 main( void )
 {
     puts( "Running unit tests..." );
-    test_macro_constructor();   puts( "  macro constructor tests passed" );
+    test_macros();              puts( "  macro tests passed" );
     test_equal();               puts( "  equality tests passed" );
     test_equal_by();            puts( "  custom equality tests passed" );
     test_realloc();             puts( "  reallocation tests passed" );
