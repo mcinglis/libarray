@@ -992,6 +992,22 @@ arrayc_{{funcname}}__eachp_(
 }
 
 
+double
+arrayc_{{funcname}}__sum_to_double_by(
+        ArrayC_{{typename}} const xs,
+        double ( * const converter )( {{type}} x ) )
+{
+    ASSERT( arrayc_{{funcname}}__is_valid( xs ),
+            converter != NULL );
+
+    double sum = 0;
+    ARRAYC_{{macroname}}__FOR_EACH( xs, x ) {
+        sum += converter( *x );
+    }
+    return sum;
+}
+
+
 bool
 arrayc_{{funcname}}__equal_by(
         ArrayC_{{typename}} const xs,
@@ -2548,6 +2564,19 @@ arraym_{{funcname}}__eachp_(
         if ( errno ) { return false; }
     }
     return true;
+}
+
+
+double
+arraym_{{funcname}}__sum_to_double_by(
+        ArrayM_{{typename}} const xs,
+        double ( * const converter )( {{type}} x ) )
+{
+    ASSERT( arraym_{{funcname}}__is_valid( xs ),
+            converter != NULL );
+
+    return arrayc_{{funcname}}__sum_to_double_by(
+               arrayc_{{funcname}}__view_arraym( xs ), converter );
 }
 
 

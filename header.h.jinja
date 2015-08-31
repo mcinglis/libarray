@@ -459,6 +459,12 @@ arrayc_{{funcname}}__eachp_(
         ( struct arrayc_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
 
 
+double
+arrayc_{{funcname}}__sum_to_double_by(
+        ArrayC_{{typename}} xs,
+        double ( * converter )( {{type}} x ) );
+
+
 bool
 arrayc_{{funcname}}__equal_by(
         ArrayC_{{typename}} xs,
@@ -1219,6 +1225,12 @@ arraym_{{funcname}}__eachp_(
 #define arraym_{{funcname}}__eachp( XS, ... ) \
     arraym_{{funcname}}__eachp_( XS, \
         ( struct arraym_{{funcname}}__eachp__options ){ __VA_ARGS__ } )
+
+
+double
+arraym_{{funcname}}__sum_to_double_by(
+        ArrayM_{{typename}} xs,
+        double ( * converter )( {{type}} x ) );
 
 
 bool
